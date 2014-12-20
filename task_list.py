@@ -6,10 +6,10 @@ import requests
 import subprocess
 import json
 
-REDMINE_URL = None
+REDMINE_URL = ''
 # REDMINE_URL = 'http://dmscode.iris.washington.edu/'
-ISSUES_URL = 'http://dmscode.iris.washington.edu/issues.json?assigned_to=adam&sort=updated_on:desc&status_id=open'
-ISSUE_URL = 'http://dmscode.iris.washington.edu/issues/%s'
+ISSUES_URL = REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_HOME, REDMINE_USER)
+ISSUE_URL = REDMINE_HOME + '/issues/%s'
 POMODORO_SCRIPT = """
 set theDuration to 29
 set theBreak to 1
@@ -21,8 +21,8 @@ end tell
 
 class TaskList(QtGui.QMainWindow):
 
-    def __init__(self):
-        super(TaskList, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(TaskList, self).__init__(*args, **kwargs)
         self.initUI()
         
     def initUI(self):               
@@ -33,7 +33,8 @@ class TaskList(QtGui.QMainWindow):
         self.list.setHeaderLabels([ 'Id', 'Project', 'Title' ])
         self.list.itemClicked.connect(self.on_click)
         self.list.doubleClicked.connect(self.on_select)
-        self.add_tasks()
+        # self.add_tasks()
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.show()
  
     def add_tasks(self):
@@ -63,15 +64,41 @@ class TaskList(QtGui.QMainWindow):
         QtCore.QCoreApplication.instance().quit()
 
     def asrun(self, ascript):
-      "Run the given AppleScript and return the standard output and error."
-      osa = subprocess.Popen(['osascript', '-'],
+        "Run the given AppleScript and return the standard output and error."
+        osa = subprocess.Popen(['osascript', '-'],
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE)
-      return osa.communicate(ascript)[0]
+        return osa.communicate(ascript)[0]
 
 def run():
     app = QtGui.QApplication(sys.argv)
+
+    icon = QtGui.QIcon(QtGui.QPixmap(10,20))
+    trayicon = QtGui.QSystemTrayIcon(icon)
+#     trayicon.setContextMenu(menu)
+    trayicon.show()
+
+    print trayicon.geometry()
+
+    menu = QtGui.QMenu('test')
+    pm = QtGui.QPixmap(trayicon.geometry().size())
+    painter = QtGui.QPainter()
+    painter.begin(pm)
+    font = menu.font()
+    font.setPixelSize(pm.height())
+    painter.setFont(font)
+    
+    print painter.font()
+    painter.fillRect(0,0,pm.width(),pm.height(),QtCore.Qt.red)
+    painter.drawText(0, pm.height(), "Test")
+    painter.end()
+    trayicon.setIcon(QtGui.QIcon(pm))
+
+#     trayicon.showMessage('test', 'test message')
     w = TaskList()
+#     w = QtGui.QWidget()
+    w.show()
+    
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
