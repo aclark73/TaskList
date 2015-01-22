@@ -5,11 +5,14 @@ import sys
 import requests
 import subprocess
 import json
+from task_picker import TaskPicker
+from timer_widget import TimerWidget
 
 REDMINE_URL = ''
 # REDMINE_URL = 'http://dmscode.iris.washington.edu/'
-ISSUES_URL = REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_HOME, REDMINE_USER)
-ISSUE_URL = REDMINE_HOME + '/issues/%s'
+REDMINE_USER = 'adam'
+ISSUES_URL =  REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_USER,)
+ISSUE_URL =  REDMINE_URL + '/issues/%s'
 POMODORO_SCRIPT = """
 set theDuration to 29
 set theBreak to 1
@@ -27,9 +30,7 @@ class TaskList(QtGui.QMainWindow):
         self.initWidgets()
 
     def initWindow(self):
-        self.setWindowTitle('PyWeed')
-        self.resize(800,400)
-        self.setMinimumWidth(400)
+        self.setWindowTitle('TaskList')
 
         self.file_menu = QtGui.QMenu('&File', self)
         self.file_menu.addAction('&Quit', self.fileQuit,
@@ -43,44 +44,35 @@ class TaskList(QtGui.QMainWindow):
         self.help_menu.addAction('&About', self.about)
     
     def initWidgets(self):
-#         main_widget = QtGui.QWidget(self)
-#         self.map = BasemapWidget(main_widget)
-#         self.waveforms = MPLWidget(main_widget)
-        self.list = QtGui.QTreeWidget(self)
-        self.setCentralWidget(self.list)
-        self.list.setHeaderLabels([ 'Id', 'Project', 'Title' ])
-        self.list.itemClicked.connect(self.on_click)
-        self.list.doubleClicked.connect(self.on_doubleclick)
-        self.add_tasks()
+        mainWidget = QtGui.QWidget(self)
+        self.setCentralWidget(mainWidget)
+        
+        #taskPickerLayout = QtGui.QVBoxLayout()
+        self.taskPicker = TaskPicker(self)
+        #self.taskPicker.taskPicked.connect(self.taskPickerDone)
+        #self.taskPicker.cancel.connect(self.taskPickerDone)
+        #taskPickerLayout.addWidget(self.taskPicker)
+        #self.taskPickerDialog.setLayout(taskPickerLayout)
+
+        self.timerWidget = TimerWidget(mainWidget)
+        self.timerWidget.needsPick.connect(self.pickTask)
+        
+        self.mainLayout = QtGui.QVBoxLayout()
+        self.mainLayout.addWidget(self.timerWidget)
+
+        mainWidget.setLayout(self.mainLayout)
+        
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.show()
  
-    def add_tasks(self):
-        if REDMINE_URL:
-            r = requests.get(ISSUES_URL)
-            if r.ok:
-                j = r.json()
-        else:
-            with open('issues.json') as f:
-                j = json.load(f)
-        for issue in j.get('issues'):
-            link = ISSUE_URL % issue.get('id')
-            item = QtGui.QTreeWidgetItem(self.list, [ "#%s" % issue.get('id'), issue.get('project').get('name'), issue.get('subject') ])
-            item.setData(0, QtCore.Qt.ItemDataRole.ToolTipRole, QtCore.QUrl(link))
-        for column in range(self.list.columnCount()):
-            self.list.resizeColumnToContents(column)
+    def pickTask(self):
+        result = self.taskPicker.exec_()
+        if result:
+            self.timerWidget.setTask(self.taskPicker.pickedTask)
+ 
+    def fileQuit(self):
+        self.close()
     
-    def on_click(self, item, column):
-        if column == 0:
-            url = item.data(0, QtCore.Qt.ItemDataRole.ToolTipRole)
-            QtGui.QDesktopServices.openUrl(url)
-    
-    def on_doubleclick(self):
-        item = self.list.currentItem()
-        task_label = "%s | %s" % (item.text(1), item.text(2))
-        self.asrun(POMODORO_SCRIPT % task_label)
-        QtCore.QCoreApplication.instance().quit()
-
     def asrun(self, ascript):
         "Run the given AppleScript and return the standard output and error."
         osa = subprocess.Popen(['osascript', '-'],
@@ -88,11 +80,20 @@ class TaskList(QtGui.QMainWindow):
                              stdout=subprocess.PIPE)
         return osa.communicate(ascript)[0]
 
-def run():
-    if 'localhost' in REDMINE_HOME:
-        import test_server
-        test_server.run()
+    def about(self):
+        QtGui.QMessageBox.about(self, "About",
+"""embedding_in_qt4.py example
+Copyright 2005 Florent Rougon, 2006 Darren Dale
 
+This program is a simple example of a Qt4 application embedding matplotlib
+canvases.
+
+It may be used and modified with no restriction; raw copies as well as
+modified versions may be distributed without limitation."""
+)
+
+
+def run():
     app = QtGui.QApplication(sys.argv)
 
     icon = QtGui.QIcon(QtGui.QPixmap(10,20))
