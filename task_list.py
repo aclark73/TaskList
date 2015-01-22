@@ -4,7 +4,10 @@ from PySide import QtGui, QtCore
 import sys
 import requests
 import subprocess
+import json
 
+REDMINE_URL = None
+# REDMINE_URL = 'http://dmscode.iris.washington.edu/'
 ISSUES_URL = 'http://dmscode.iris.washington.edu/issues.json?assigned_to=adam&sort=updated_on:desc&status_id=open'
 ISSUE_URL = 'http://dmscode.iris.washington.edu/issues/%s'
 POMODORO_SCRIPT = """
@@ -34,9 +37,13 @@ class TaskList(QtGui.QMainWindow):
         self.show()
  
     def add_tasks(self):
-      r = requests.get(ISSUES_URL)
-      if r.ok:
-        j = r.json()
+        if REDMINE_URL:
+            r = requests.get(ISSUES_URL)
+            if r.ok:
+                j = r.json()
+        else:
+            with open('issues.json') as f:
+                j = json.load(f)
         for issue in j.get('issues'):
             link = ISSUE_URL % issue.get('id')
             item = QtGui.QTreeWidgetItem(self.list, [ "#%s" % issue.get('id'), issue.get('project').get('name'), issue.get('subject') ])
