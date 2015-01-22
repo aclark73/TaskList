@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 
-from PySide import QtGui, QtCore
+from PyQt4 import QtGui, QtCore
 import sys
 import requests
 import subprocess
@@ -23,17 +23,35 @@ class TaskList(QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(TaskList, self).__init__(*args, **kwargs)
-        self.initUI()
-        
-    def initUI(self):               
+        self.initWindow()
+        self.initWidgets()
 
+    def initWindow(self):
+        self.setWindowTitle('PyWeed')
         self.resize(800,400)
+        self.setMinimumWidth(400)
+
+        self.file_menu = QtGui.QMenu('&File', self)
+        self.file_menu.addAction('&Quit', self.fileQuit,
+                                 QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
+        self.menuBar().addMenu(self.file_menu)
+
+        self.help_menu = QtGui.QMenu('&Help', self)
+        self.menuBar().addSeparator()
+        self.menuBar().addMenu(self.help_menu)
+
+        self.help_menu.addAction('&About', self.about)
+    
+    def initWidgets(self):
+#         main_widget = QtGui.QWidget(self)
+#         self.map = BasemapWidget(main_widget)
+#         self.waveforms = MPLWidget(main_widget)
         self.list = QtGui.QTreeWidget(self)
         self.setCentralWidget(self.list)
         self.list.setHeaderLabels([ 'Id', 'Project', 'Title' ])
         self.list.itemClicked.connect(self.on_click)
-        self.list.doubleClicked.connect(self.on_select)
-        # self.add_tasks()
+        self.list.doubleClicked.connect(self.on_doubleclick)
+        self.add_tasks()
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.show()
  
@@ -57,7 +75,7 @@ class TaskList(QtGui.QMainWindow):
             url = item.data(0, QtCore.Qt.ItemDataRole.ToolTipRole)
             QtGui.QDesktopServices.openUrl(url)
     
-    def on_select(self):
+    def on_doubleclick(self):
         item = self.list.currentItem()
         task_label = "%s | %s" % (item.text(1), item.text(2))
         self.asrun(POMODORO_SCRIPT % task_label)
@@ -71,6 +89,10 @@ class TaskList(QtGui.QMainWindow):
         return osa.communicate(ascript)[0]
 
 def run():
+    if 'localhost' in REDMINE_HOME:
+        import test_server
+        test_server.run()
+
     app = QtGui.QApplication(sys.argv)
 
     icon = QtGui.QIcon(QtGui.QPixmap(10,20))
