@@ -4,15 +4,14 @@ from PyQt4 import QtGui, QtCore
 import sys
 import requests
 import subprocess
-import json
-from task_picker import TaskPicker
 from timer_widget import TimerWidget
+from task_picker import TaskPicker
 
-REDMINE_URL = ''
-# REDMINE_URL = 'http://dmscode.iris.washington.edu/'
+# REDMINE_HOME = 'http://dmscode.iris.washington.edu'
+REDMINE_HOME = 'http://localhost:8181'
 REDMINE_USER = 'adam'
-ISSUES_URL =  REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_USER,)
-ISSUE_URL =  REDMINE_URL + '/issues/%s'
+ISSUES_URL = '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_HOME, REDMINE_USER)
+ISSUE_URL = REDMINE_HOME + '/issues/%s'
 POMODORO_SCRIPT = """
 set theDuration to 29
 set theBreak to 1
@@ -26,88 +25,40 @@ class TaskList(QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(TaskList, self).__init__(*args, **kwargs)
-        self.initWindow()
-        self.initWidgets()
+        self.initUI()
+        
+    def initUI(self):
+        self.timerWidget = TimerWidget()
+        self.timerWidget.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        self.pickerWidget = TaskPicker(self.timerWidget)
+        
+        self.timerWidget.needsPick.connect(self.showPicker)
+        self.pickerWidget.picked.connect(self.onTaskPicked)
 
-    def initWindow(self):
-        self.setWindowTitle('TaskList')
-
-        self.file_menu = QtGui.QMenu('&File', self)
-        self.file_menu.addAction('&Quit', self.fileQuit,
-                                 QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
-        self.menuBar().addMenu(self.file_menu)
-
-        self.help_menu = QtGui.QMenu('&Help', self)
-        self.menuBar().addSeparator()
-        self.menuBar().addMenu(self.help_menu)
-
-        self.help_menu.addAction('&About', self.about)
+        self.setCentralWidget(self.timerWidget)
+        
+    def showPicker(self):
+        self.pickerWidget.exec_()
     
-    def initWidgets(self):
-        mainWidget = QtGui.QWidget(self)
-        self.setCentralWidget(mainWidget)
-        
-        #taskPickerLayout = QtGui.QVBoxLayout()
-        self.taskPicker = TaskPicker(self)
-        #self.taskPicker.taskPicked.connect(self.taskPickerDone)
-        #self.taskPicker.cancel.connect(self.taskPickerDone)
-        #taskPickerLayout.addWidget(self.taskPicker)
-        #self.taskPickerDialog.setLayout(taskPickerLayout)
-
-        self.timerWidget = TimerWidget(mainWidget)
-        self.timerWidget.needsPick.connect(self.pickTask)
-        
-        self.mainLayout = QtGui.QVBoxLayout()
-        self.mainLayout.addWidget(self.timerWidget)
-
-        mainWidget.setLayout(self.mainLayout)
-        
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.show()
- 
-    def pickTask(self):
-        result = self.taskPicker.exec_()
-        if result:
-            self.timerWidget.setTask(self.taskPicker.pickedTask)
- 
-    def fileQuit(self):
-        self.close()
-    
-    def asrun(self, ascript):
-        "Run the given AppleScript and return the standard output and error."
-        osa = subprocess.Popen(['osascript', '-'],
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE)
-        return osa.communicate(ascript)[0]
-
-    def about(self):
-        QtGui.QMessageBox.about(self, "About",
-"""embedding_in_qt4.py example
-Copyright 2005 Florent Rougon, 2006 Darren Dale
-
-This program is a simple example of a Qt4 application embedding matplotlib
-canvases.
-
-It may be used and modified with no restriction; raw copies as well as
-modified versions may be distributed without limitation."""
-)
+    def onTaskPicked(self, task):
+        self.timerWidget.setTask(task)
 
 
 def run():
     app = QtGui.QApplication(sys.argv)
 
+    menu = QtGui.QMenu('test')
+    font = menu.font()
     icon = QtGui.QIcon(QtGui.QPixmap(10,20))
     trayicon = QtGui.QSystemTrayIcon(icon)
-#     trayicon.setContextMenu(menu)
+    trayicon.setContextMenu(menu)
     trayicon.show()
 
     print trayicon.geometry()
 
-    menu = QtGui.QMenu('test')
     pm = QtGui.QPixmap(trayicon.geometry().size())
     painter = QtGui.QPainter()
     painter.begin(pm)
-    font = menu.font()
     font.setPixelSize(pm.height())
     painter.setFont(font)
     
@@ -117,10 +68,15 @@ def run():
     painter.end()
     trayicon.setIcon(QtGui.QIcon(pm))
 
+    task_list = TaskList()
+    task_list.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    task_list.menuBar().addMenu(menu)
+    
 #     trayicon.showMessage('test', 'test message')
-    w = TaskList()
+    #w = TaskList()
 #     w = QtGui.QWidget()
-    w.show()
+    #w.show()
+    task_list.show()
     
     sys.exit(app.exec_())
 

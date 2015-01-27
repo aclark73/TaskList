@@ -5,6 +5,8 @@ import sys
 import requests
 import subprocess
 import json
+import timer_widget
+from timer_widget import Task
 
 REDMINE_URL = 'http://localhost/'
 # REDMINE_URL = 'http://dmscode.iris.washington.edu/'
@@ -22,10 +24,10 @@ end tell
 
 class TaskPicker(QtGui.QDialog):
 
-    taskPicked = QtCore.pyqtSignal(str)
+    picked = QtCore.pyqtSignal(Task)
     cancel = QtCore.pyqtSignal()
     
-    pickedTask = None
+    pickedTask = timer_widget.NO_TASK
 
     def __init__(self, *args, **kwargs):
         super(TaskPicker, self).__init__(*args, **kwargs)
@@ -38,12 +40,12 @@ class TaskPicker(QtGui.QDialog):
         self.list = QtGui.QTreeWidget(self)
         self.list.setHeaderLabels([ 'Id', 'Project', 'Title' ])
         self.list.itemClicked.connect(self.onItemClick)
-        self.list.doubleClicked.connect(self.accept)
+        self.list.doubleClicked.connect(self.onPicked)
 
         self.fetchButton = QtGui.QPushButton('Fetch')
         self.fetchButton.clicked.connect(self.fetchTasks)
         self.okButton = QtGui.QPushButton('Ok')
-        self.okButton.clicked.connect(self.accept)
+        self.okButton.clicked.connect(self.onPicked)
         
 
         layout = QtGui.QVBoxLayout()
@@ -75,10 +77,15 @@ class TaskPicker(QtGui.QDialog):
             self.list.resizeColumnToContents(column)
     
     def onItemClick(self, item, column):
-        self.pickedTask = "%s | %s" % (item.text(1), item.text(2))
+        self.pickedTask = Task("%s | %s" % (item.text(1), item.text(2)))
         if column == 0:
             url = item.data(0, QtCore.Qt.ToolTipRole)
             QtGui.QDesktopServices.openUrl(url)
+    
+    def onPicked(self):
+        self.picked.emit(self.pickedTask)
+        self.hide()
+        
 
 def run():
     app = QtGui.QApplication(sys.argv)
@@ -88,8 +95,7 @@ def run():
     
     def on_ok(label):
         print(label)
-        w.close()
-    w.taskPicked.connect(on_ok)
+    w.picked.connect(on_ok)
 #     w = QtGui.QWidget()
     w.show()
     
