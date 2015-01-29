@@ -25,13 +25,15 @@ end tell
 class TaskPicker(QtGui.QDialog):
 
     picked = QtCore.pyqtSignal(Task)
-    cancel = QtCore.pyqtSignal()
     
     pickedTask = timer_widget.NO_TASK
+    savedGeometry = None
 
     def __init__(self, *args, **kwargs):
         super(TaskPicker, self).__init__(*args, **kwargs)
         self.initWidgets()
+        if self.savedGeometry:
+            self.setGeometry(self.savedGeometry)
 
     def initWidgets(self):
 #         main_widget = QtGui.QWidget(self)
@@ -75,6 +77,8 @@ class TaskPicker(QtGui.QDialog):
             item.setData(0, QtCore.Qt.ToolTipRole, QtCore.QUrl(link))
         for column in range(self.list.columnCount()):
             self.list.resizeColumnToContents(column)
+        if not self.savedGeometry:
+            self.adjustSize()
     
     def onItemClick(self, item, column):
         self.pickedTask = Task("%s | %s" % (item.text(1), item.text(2)))
@@ -84,7 +88,11 @@ class TaskPicker(QtGui.QDialog):
     
     def onPicked(self):
         self.picked.emit(self.pickedTask)
-        self.hide()
+        self.close()
+    
+    def closeEvent(self, *args, **kwargs):
+        self.savedGeometry = self.geometry()
+        super(TaskPicker, self).closeEvent(*args, **kwargs)
         
 
 def run():

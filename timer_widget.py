@@ -31,7 +31,8 @@ class TimerWidget(QtGui.QWidget):
     
     started = QtCore.pyqtSignal(Task)
     stopped = QtCore.pyqtSignal(Task)
-    needsPick = QtCore.pyqtSignal()
+    taskNeeded = QtCore.pyqtSignal()
+    
     state = None
     
     canContinue = False
@@ -57,48 +58,56 @@ class TimerWidget(QtGui.QWidget):
 
         self.taskLabel = QtGui.QLabel("--", self)
         layout.addWidget(self.taskLabel)
+        
+        sublayout = QtGui.QHBoxLayout()
         self.timeLabel = QtGui.QLabel("--", self)
-        layout.addWidget(self.timeLabel)
+        font = self.timeLabel.font()
+        font.setPointSize(24)
+        self.timeLabel.setFont(font)
+        sublayout.addWidget(self.timeLabel)
         
         self.displayMessage = QtGui.QLabel("", self)
         self.displayMessage.hide()
-        layout.addWidget(self.displayMessage)
+        sublayout.addWidget(self.displayMessage)
+        
+        layout.addLayout(sublayout)
         
         toolbar = QtGui.QToolBar(self)
         
         self.startButton = QtGui.QAction(
             # QtGui.QIcon.fromTheme('media-playback-start'),
-            QtGui.QIcon('icon.png'), 
+            self.style().standardIcon(QtGui.QStyle.SP_MediaPlay),
+            # QtGui.QIcon('icon.png'), 
             'Start', 
             self)
         self.startButton.triggered.connect(self.start)
         toolbar.addAction(self.startButton)
         
         self.stopButton = QtGui.QAction(
-            QtGui.QIcon.fromTheme('media-playback-stop'), 
+            self.style().standardIcon(QtGui.QStyle.SP_MediaStop),
+            # QtGui.QIcon.fromTheme('media-playback-stop'), 
             'Stop', 
             self)
         self.stopButton.triggered.connect(self.stop)
         toolbar.addAction(self.stopButton)
         
         self.breakButton = QtGui.QAction(
+            self.style().standardIcon(QtGui.QStyle.SP_MediaPause),
             'Start Break',
             self
         )
         self.breakButton.triggered.connect(self.startBreak)
         toolbar.addAction(self.breakButton)
 
-        icon = QtGui.QIcon.fromTheme('media-eject')
-        
         self.pickButton = QtGui.QAction(
-            icon, 
+            self.style().standardIcon(QtGui.QStyle.SP_DirOpenIcon),
             'Change', 
             self)
-        self.pickButton.triggered.connect(self.activity)
         self.pickButton.triggered.connect(self.pick)
         toolbar.addAction(self.pickButton)
         
-        layout.addWidget(toolbar)
+        # layout.addWidget(toolbar)
+        self.toolbar = toolbar
         self.setLayout(layout)
 
     def updateUI(self):
@@ -203,7 +212,7 @@ class TimerWidget(QtGui.QWidget):
         if self.isStopped():
             messageBox = QtGui.QMessageBox(self)
             messageBox.setText("Still there?")
-            messageBox.show()
+            messageBox.exec_()
     
     def activity(self):
         LOGGER.info("Activity!")
@@ -234,15 +243,15 @@ class TimerWidget(QtGui.QWidget):
 
     def pick(self):
         self.activity()
-        self.needsPick.emit()
+        self.taskNeeded.emit()
     
 def run():
     app = QtGui.QApplication(sys.argv)
     w = TimerWidget()
     
-    def onNeedsPick():
+    def onTaskNeeded():
         w.setTask(Task("Some task"))
-    w.needsPick.connect(onNeedsPick)
+    w.taskNeeded.connect(onTaskNeeded)
     def onStart(task):
         LOGGER.info("Started %s" % task)
     w.started.connect(onStart)

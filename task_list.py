@@ -32,13 +32,14 @@ class TaskList(QtGui.QMainWindow):
         self.timerWidget.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.pickerWidget = TaskPicker(self.timerWidget)
         
-        self.timerWidget.needsPick.connect(self.showPicker)
+        self.timerWidget.taskNeeded.connect(self.showPicker)
         self.pickerWidget.picked.connect(self.onTaskPicked)
 
         self.setCentralWidget(self.timerWidget)
+        self.addToolBar(QtCore.Qt.TopToolBarArea, self.timerWidget.toolbar)
         
     def showPicker(self):
-        self.pickerWidget.exec_()
+        self.pickerWidget.show()
     
     def onTaskPicked(self, task):
         self.timerWidget.setTask(task)
