@@ -6,9 +6,9 @@ from logging import getLogger
 LOGGER = getLogger(__name__)
     
 class Preferences(object):
-    timeToGo = datetime.timedelta(seconds=4)
-    inactivityTime = datetime.timedelta(seconds=2)
-    breakTime = datetime.timedelta(seconds=5)
+    timeToGo = datetime.timedelta(minutes=29)
+    inactivityTime = datetime.timedelta(minutes=1)
+    breakTime = datetime.timedelta(minutes=1)
     
 PREFS = Preferences()
 
@@ -46,10 +46,12 @@ class TimerWidget(QtGui.QWidget):
         self.updateUI()
     
     def initTimers(self):
-        self.timer = QtCore.QTimer()
+        self.timer = QtCore.QTimer(self)
+        self.timer.setInterval(1000)
         self.timer.timeout.connect(self.tick)
         self.timeToGo = PREFS.timeToGo
-        self.inactivityTimer = QtCore.QTimer()
+        self.inactivityTimer = QtCore.QTimer(self)
+        self.inactivityTimer.setInterval(PREFS.inactivityTime.seconds*1000)
         self.inactivityTimer.timeout.connect(self.inactiveUser)
 
     def initUI(self):
@@ -75,9 +77,7 @@ class TimerWidget(QtGui.QWidget):
         toolbar = QtGui.QToolBar(self)
         
         self.startButton = QtGui.QAction(
-            # QtGui.QIcon.fromTheme('media-playback-start'),
             self.style().standardIcon(QtGui.QStyle.SP_MediaPlay),
-            # QtGui.QIcon('icon.png'), 
             'Start', 
             self)
         self.startButton.triggered.connect(self.start)
@@ -121,6 +121,9 @@ class TimerWidget(QtGui.QWidget):
         )
         if self.isOnBreak():
             self.displayMessage.setText("On break")
+            self.displayMessage.setVisible(True)
+        elif self.needsBreak:
+            self.displayMessage.setText("You need a break!")
             self.displayMessage.setVisible(True)
         else:
             self.displayMessage.setVisible(False)
@@ -213,10 +216,11 @@ class TimerWidget(QtGui.QWidget):
             messageBox = QtGui.QMessageBox(self)
             messageBox.setText("Still there?")
             messageBox.exec_()
+            self.inactivityTimer.start()
     
     def activity(self):
         LOGGER.info("Activity!")
-        self.inactivityTimer.stop()
+        self.inactivityTimer.start()
 
     def start(self):
         self.activity()
@@ -239,7 +243,6 @@ class TimerWidget(QtGui.QWidget):
         self.timeToGo = PREFS.timeToGo
         self.setState(TimerState.STOPPED)
         self.updateUI()
-        self.inactivityTimer.start(PREFS.inactivityTime.seconds*1000)
 
     def pick(self):
         self.activity()

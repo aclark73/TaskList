@@ -7,8 +7,8 @@ import subprocess
 from timer_widget import TimerWidget
 from task_picker import TaskPicker
 
-# REDMINE_HOME = 'http://dmscode.iris.washington.edu'
-REDMINE_HOME = 'http://localhost:8181'
+REDMINE_HOME = 'http://dmscode.iris.washington.edu'
+# REDMINE_HOME = 'http://localhost:8181'
 REDMINE_USER = 'adam'
 ISSUES_URL = '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_HOME, REDMINE_USER)
 ISSUE_URL = REDMINE_HOME + '/issues/%s'
@@ -31,6 +31,7 @@ class TaskList(QtGui.QMainWindow):
         self.timerWidget = TimerWidget()
         self.timerWidget.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.pickerWidget = TaskPicker(self.timerWidget)
+        self.pickerWidget.setModal(True)
         
         self.timerWidget.taskNeeded.connect(self.showPicker)
         self.pickerWidget.picked.connect(self.onTaskPicked)

@@ -8,10 +8,10 @@ import json
 import timer_widget
 from timer_widget import Task
 
-REDMINE_URL = 'http://localhost/'
-# REDMINE_URL = 'http://dmscode.iris.washington.edu/'
-REDMINE_USER = 'adam'
-ISSUES_URL =  REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_USER,)
+# REDMINE_URL = 'http://localhost/'
+REDMINE_URL = 'http://dmscode.iris.washington.edu/'
+REDMINE_USER = 3
+ISSUES_URL =  REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open&limit=100' % (REDMINE_USER,)
 ISSUE_URL =  REDMINE_URL + '/issues/%s'
 POMODORO_SCRIPT = """
 set theDuration to 29
@@ -81,9 +81,9 @@ class TaskPicker(QtGui.QDialog):
             self.adjustSize()
     
     def onItemClick(self, item, column):
-        self.pickedTask = Task("%s | %s" % (item.text(1), item.text(2)))
+        self.pickedTask = Task("%s | %s | %s" % (item.text(0), item.text(1), item.text(2)))
         if column == 0:
-            url = item.data(0, QtCore.Qt.ToolTipRole)
+            url = QtCore.QUrl(item.data(0, QtCore.Qt.ToolTipRole))
             QtGui.QDesktopServices.openUrl(url)
     
     def onPicked(self):
