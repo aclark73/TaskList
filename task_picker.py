@@ -7,6 +7,7 @@ import subprocess
 import json
 import timer_widget
 from timer_widget import Task
+from settings import getSettings
 
 # REDMINE_URL = 'http://localhost/'
 REDMINE_URL = 'http://dmscode.iris.washington.edu/'
@@ -22,6 +23,34 @@ tell application "Pomodoro"
 end tell
 """
 
+
+class RedmineProjectItem(QtGui.QTreeWidgetItem):
+    itemType = QtGui.QTreeWidgetItem.UserType + 1
+    def __init__(self, project, *args, **kwargs):
+        self.project = project
+        kwargs['type'] = self.itemType
+        super(RedmineProjectItem, self).__init__(*args, **kwargs)
+        self.setFlags(QtCore.Qt.ItemIsEnabled)
+        self.setFirstColumnSpanned(True)
+        self.setText(0, self.project)
+
+
+class RedmineIssueItem(QtGui.QTreeWidgetItem):
+    itemType = RedmineProjectItem.itemType + 1
+    def __init__(self, issue, *args, **kwargs):
+        self.issue = issue
+        kwargs['type'] = self.itemType
+        super(RedmineIssueItem, self).__init__(*args, **kwargs)
+        # self.setText(0, self.issue.get('project').get('name'))
+        self.setText(0, "#%s" % self.issue.get('id'))
+        self.setText(1, self.issue.get('subject'))
+        self.setData(0, QtCore.Qt.ToolTipRole, self.getLink())
+
+    def getLink(self):
+        link = ISSUE_URL % self.issue.get('id')
+        return QtCore.QUrl(link)
+
+
 class TaskPicker(QtGui.QDialog):
 
     picked = QtCore.pyqtSignal(Task)
@@ -32,15 +61,19 @@ class TaskPicker(QtGui.QDialog):
     def __init__(self, *args, **kwargs):
         super(TaskPicker, self).__init__(*args, **kwargs)
         self.initWidgets()
-        if self.savedGeometry:
-            self.setGeometry(self.savedGeometry)
+        settings = getSettings()
+        settings.beginGroup('taskpicker')
+        if settings.contains('geometry'):
+            self.setGeometry(settings.value('geometry').toRect())
+        settings.endGroup()        
 
     def initWidgets(self):
 #         main_widget = QtGui.QWidget(self)
 #         self.map = BasemapWidget(main_widget)
 #         self.waveforms = MPLWidget(main_widget)
         self.list = QtGui.QTreeWidget(self)
-        self.list.setHeaderLabels([ 'Id', 'Project', 'Title' ])
+        # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
+        self.list.setHeaderLabels([ 'Id', 'Title' ])
         self.list.itemClicked.connect(self.onItemClick)
         self.list.doubleClicked.connect(self.onPicked)
 
@@ -71,27 +104,35 @@ class TaskPicker(QtGui.QDialog):
             if r.ok:
                 j = r.json()
         self.list.clear()
+        self.projects = {}
+        self.list.setSortingEnabled(False)
         for issue in j.get('issues'):
-            link = ISSUE_URL % issue.get('id')
-            item = QtGui.QTreeWidgetItem(self.list, [ "#%s" % issue.get('id'), issue.get('project').get('name'), issue.get('subject') ])
-            item.setData(0, QtCore.Qt.ToolTipRole, QtCore.QUrl(link))
+            item = RedmineIssueItem(issue)
+            project = issue.get('project').get('name')
+            project_item = self.projects.get(project)
+            if not project_item:
+                self.projects[project] = project_item = RedmineProjectItem(project)
+                self.list.addTopLevelItem(project_item)
+            project_item.addChild(item)
         for column in range(self.list.columnCount()):
             self.list.resizeColumnToContents(column)
-        if not self.savedGeometry:
-            self.adjustSize()
+        self.list.setSortingEnabled(True)
     
     def onItemClick(self, item, column):
-        self.pickedTask = Task("%s | %s | %s" % (item.text(0), item.text(1), item.text(2)))
-        if column == 0:
-            url = QtCore.QUrl(item.data(0, QtCore.Qt.ToolTipRole))
-            QtGui.QDesktopServices.openUrl(url)
+        if isinstance(item, RedmineIssueItem):
+            self.pickedTask = Task("%s | %s | %s" % (item.text(0), item.text(1), item.text(2)))
+            if column == 0:
+                QtGui.QDesktopServices.openUrl(item.getLink())
     
     def onPicked(self):
         self.picked.emit(self.pickedTask)
         self.close()
     
     def closeEvent(self, *args, **kwargs):
-        self.savedGeometry = self.geometry()
+        settings = getSettings()
+        settings.beginGroup('taskpicker')
+        settings.setValue('geometry', self.geometry())
+        settings.endGroup()
         super(TaskPicker, self).closeEvent(*args, **kwargs)
         
 

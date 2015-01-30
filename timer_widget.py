@@ -30,7 +30,7 @@ NO_TASK = Task("None")
 class TimerWidget(QtGui.QWidget):
     
     started = QtCore.pyqtSignal(Task)
-    stopped = QtCore.pyqtSignal(Task)
+    stopped = QtCore.pyqtSignal(Task, datetime.datetime, datetime.datetime)
     taskNeeded = QtCore.pyqtSignal()
     
     state = None
@@ -238,7 +238,7 @@ class TimerWidget(QtGui.QWidget):
         self.timer.stop()
         self.endTime = datetime.datetime.now()
         if self.isRunning():
-            self.stopped.emit(self.task)
+            self.stopped.emit(self.task, self.startTime, self.endTime)
             self.canContinue = True
         self.timeToGo = PREFS.timeToGo
         self.setState(TimerState.STOPPED)

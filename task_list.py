@@ -6,6 +6,8 @@ import requests
 import subprocess
 from timer_widget import TimerWidget
 from task_picker import TaskPicker
+from settings import getSettings
+from logging import getLogger
 
 REDMINE_HOME = 'http://dmscode.iris.washington.edu'
 # REDMINE_HOME = 'http://localhost:8181'
@@ -21,11 +23,18 @@ tell application "Pomodoro"
 end tell
 """
 
+LOGGER = getLogger(__name__)
+
 class TaskList(QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(TaskList, self).__init__(*args, **kwargs)
         self.initUI()
+        settings = getSettings()
+        settings.beginGroup('mainwindow')
+        if settings.contains('geometry'):
+            self.setGeometry(settings.value('geometry').toRect())
+        settings.endGroup()        
         
     def initUI(self):
         self.timerWidget = TimerWidget()
@@ -36,7 +45,10 @@ class TaskList(QtGui.QMainWindow):
         self.timerWidget.taskNeeded.connect(self.showPicker)
         self.pickerWidget.picked.connect(self.onTaskPicked)
 
+        self.timerWidget.stopped.connect(self.onTaskStopped)
+
         self.setCentralWidget(self.timerWidget)
+        self.timerWidget.toolbar.setMovable(False)
         self.addToolBar(QtCore.Qt.TopToolBarArea, self.timerWidget.toolbar)
         
     def showPicker(self):
@@ -44,6 +56,16 @@ class TaskList(QtGui.QMainWindow):
     
     def onTaskPicked(self, task):
         self.timerWidget.setTask(task)
+
+    def onTaskStopped(self, task, startTime, endTime):
+        print("%s,%s,%s" % (task, startTime, endTime))
+
+    def closeEvent(self, *args, **kwargs):
+        settings = getSettings()
+        settings.beginGroup('mainwindow')
+        settings.setValue('geometry', self.geometry())
+        settings.endGroup()
+        super(TaskList, self).closeEvent(*args, **kwargs)
 
 
 def run():
