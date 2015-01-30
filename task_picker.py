@@ -7,21 +7,34 @@ import subprocess
 import json
 import timer_widget
 from timer_widget import Task
-from settings import getSettings
+from settings import Settings
 
-# REDMINE_URL = 'http://localhost/'
-REDMINE_URL = 'http://dmscode.iris.washington.edu/'
-REDMINE_USER = 3
-ISSUES_URL =  REDMINE_URL + '/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open&limit=100' % (REDMINE_USER,)
-ISSUE_URL =  REDMINE_URL + '/issues/%s'
-POMODORO_SCRIPT = """
-set theDuration to 29
-set theBreak to 1
-
-tell application "Pomodoro"
-    start "%s" duration theDuration break theBreak
-end tell
-"""
+class RedmineSettings(object):
+    prefix = None
+#    BASE_URL = 'http://dmscode.iris.washington.edu/'
+    BASE_URL = 'http://localhost/'
+    USER = 3
+    ISSUES_URL =  '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open&limit=100'
+    ISSUE_URL =  '%s/issues/%s'
+    GEOMETRY = None
+    
+    def __init__(self):
+        if not self.prefix:
+            self.prefix = str(__name__)
+    
+    def __getattribute__(self, name):
+        if name.isupper():
+            with Settings(self.prefix) as settings:
+                if settings.contains(name):
+                    return settings.value(name)
+        return object.__getattribute__(self, name)
+    
+    def __setattr__(self, name, value):
+        if name.isupper():
+            with Settings(self.prefix) as settings:
+                settings.setValue(name, value)
+        object.__setattr__(self, name, value)
+SETTINGS = RedmineSettings()
 
 
 class RedmineProjectItem(QtGui.QTreeWidgetItem):
@@ -47,8 +60,10 @@ class RedmineIssueItem(QtGui.QTreeWidgetItem):
         self.setData(0, QtCore.Qt.ToolTipRole, self.getLink())
 
     def getLink(self):
-        link = ISSUE_URL % self.issue.get('id')
+        link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue.get('id'))
         return QtCore.QUrl(link)
+
+
 
 
 class TaskPicker(QtGui.QDialog):
@@ -61,11 +76,9 @@ class TaskPicker(QtGui.QDialog):
     def __init__(self, *args, **kwargs):
         super(TaskPicker, self).__init__(*args, **kwargs)
         self.initWidgets()
-        settings = getSettings()
-        settings.beginGroup('taskpicker')
-        if settings.contains('geometry'):
-            self.setGeometry(settings.value('geometry').toRect())
-        settings.endGroup()        
+        geometry = SETTINGS.GEOMETRY
+        if geometry:
+            self.setGeometry(geometry.toRect())
 
     def initWidgets(self):
 #         main_widget = QtGui.QWidget(self)
@@ -96,11 +109,13 @@ class TaskPicker(QtGui.QDialog):
 #         self.show()
 
     def fetchTasks(self):
-        if 'localhost' in REDMINE_URL:
+        if 'localhost' in SETTINGS.BASE_URL:
             with open('issues.json') as f:
                 j = json.load(f)
         else:
-            r = requests.get(ISSUES_URL)
+            r = requests.get(SETTINGS.ISSUES_URL % (
+                SETTINGS.BASE_URL, SETTINGS.USER
+            ))
             if r.ok:
                 j = r.json()
         self.list.clear()
@@ -129,10 +144,7 @@ class TaskPicker(QtGui.QDialog):
         self.close()
     
     def closeEvent(self, *args, **kwargs):
-        settings = getSettings()
-        settings.beginGroup('taskpicker')
-        settings.setValue('geometry', self.geometry())
-        settings.endGroup()
+        SETTINGS.GEOMETRY = self.geometry()
         super(TaskPicker, self).closeEvent(*args, **kwargs)
         
 

@@ -6,7 +6,7 @@ import requests
 import subprocess
 from timer_widget import TimerWidget
 from task_picker import TaskPicker
-from settings import getSettings
+from settings import Settings
 from logging import getLogger
 
 REDMINE_HOME = 'http://dmscode.iris.washington.edu'
@@ -30,10 +30,9 @@ class TaskList(QtGui.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(TaskList, self).__init__(*args, **kwargs)
         self.initUI()
-        settings = getSettings()
-        settings.beginGroup('mainwindow')
-        if settings.contains('geometry'):
-            self.setGeometry(settings.value('geometry').toRect())
+        with Settings(__name__) as settings:
+            if settings.contains('geometry'):
+                self.setGeometry(settings.value('geometry').toRect())
         settings.endGroup()        
         
     def initUI(self):
@@ -61,10 +60,8 @@ class TaskList(QtGui.QMainWindow):
         print("%s,%s,%s" % (task, startTime, endTime))
 
     def closeEvent(self, *args, **kwargs):
-        settings = getSettings()
-        settings.beginGroup('mainwindow')
-        settings.setValue('geometry', self.geometry())
-        settings.endGroup()
+        with Settings(__name__) as settings:
+            settings.setValue('geometry', self.geometry())
         super(TaskList, self).closeEvent(*args, **kwargs)
 
 
