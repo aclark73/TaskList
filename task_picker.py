@@ -10,8 +10,8 @@ from timer_widget import Task
 from settings import AppSettings
 
 class TaskPickerSettings(AppSettings):
-#    BASE_URL = 'http://dmscode.iris.washington.edu/'
-    BASE_URL = 'http://localhost/'
+    BASE_URL = 'http://dmscode.iris.washington.edu/'
+    # BASE_URL = 'http://localhost/'
     USER = 3
     ISSUES_URL =  '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open&limit=100'
     ISSUE_URL =  '%s/issues/%s'

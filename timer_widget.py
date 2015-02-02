@@ -6,7 +6,6 @@ from settings import AppSettings
 
 LOGGER = getLogger(__name__)
 
-
 class TimerSettings(AppSettings):
     TASK_TIME = 29
     TASK_EXTENSION = 5
@@ -185,9 +184,9 @@ class TimerWidget(QtGui.QWidget):
         self.stop()
         self.setState(TimerState.ON_BREAK)
         self.needsBreak = False
-        self.timeToGo = datetime.timedelta(seconds=minutes)
+        self.timeToGo = datetime.timedelta(minutes=minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
-        self.timer.start(1000)
+        self.timer.start()
         self.updateUI()
     
     def extendBreak(self):
@@ -286,7 +285,7 @@ class TimerWidget(QtGui.QWidget):
         if self.isRunning():
             self.stopped.emit(self.task, self.startTime, self.endTime)
             self.canContinue = True
-        self.timeToGo = datetime.timedelta(seconds=SETTINGS.TASK_TIME)
+        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_TIME)
         self.setState(TimerState.STOPPED)
         self.updateUI()
 
