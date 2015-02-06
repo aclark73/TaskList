@@ -13,7 +13,7 @@ class TaskPickerSettings(AppSettings):
     BASE_URL = 'http://dmscode.iris.washington.edu/'
     # BASE_URL = 'http://localhost/'
     USER = 3
-    ISSUES_URL =  '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open&limit=100'
+    ISSUES_URL =  '%s/issues.json?assigned_to_id=%s&sort=updated_on:desc&status_id=open&limit=200'
     ISSUE_URL =  '%s/issues/%s'
     GEOMETRY = None
     
@@ -68,6 +68,15 @@ class RedmineIssueItem(IssueItem):
 
     def getProjectName(self):
         return self.issue.get('project').get('name')
+
+    def __lt__(self, otherItem):
+        column = self.treeWidget().sortColumn()
+        if column == 0:
+            try:
+                return int(self.text(column)[1:]) < int(otherItem.text(column)[1:])
+            except:
+                pass
+        return super(RedmineIssueItem, self).__lt__(otherItem)
 
 
 class TaskPicker(QtGui.QDialog):
