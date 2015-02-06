@@ -6,23 +6,13 @@ import requests
 import subprocess
 from timer_widget import TimerWidget
 from task_picker import TaskPicker
-from settings import Settings
+from settings import AppSettings
 from logging import getLogger
 
-REDMINE_HOME = 'http://dmscode.iris.washington.edu'
-# REDMINE_HOME = 'http://localhost:8181'
-REDMINE_USER = 'adam'
-ISSUES_URL = '%s/issues.json?assigned_to=%s&sort=updated_on:desc&status_id=open' % (REDMINE_HOME, REDMINE_USER)
-ISSUE_URL = REDMINE_HOME + '/issues/%s'
-POMODORO_SCRIPT = """
-set theDuration to 29
-set theBreak to 1
-
-tell application "Pomodoro"
-    start "%s" duration theDuration break theBreak
-end tell
-"""
-
+class TaskListSettings(AppSettings):
+    GEOMETRY = None
+SETTINGS = TaskListSettings()
+    
 LOGGER = getLogger(__name__)
 
 class TaskList(QtGui.QMainWindow):
@@ -30,10 +20,8 @@ class TaskList(QtGui.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(TaskList, self).__init__(*args, **kwargs)
         self.initUI()
-        with Settings(__name__) as settings:
-            if settings.contains('geometry'):
-                self.setGeometry(settings.value('geometry').toRect())
-        settings.endGroup()        
+        if SETTINGS.GEOMETRY:
+            self.setGeometry(SETTINGS.GEOMETRY.toRect())
         
     def initUI(self):
         self.timerWidget = TimerWidget()
@@ -60,8 +48,7 @@ class TaskList(QtGui.QMainWindow):
         print("%s,%s,%s" % (task, startTime, endTime))
 
     def closeEvent(self, *args, **kwargs):
-        with Settings(__name__) as settings:
-            settings.setValue('geometry', self.geometry())
+        SETTINGS.GEOMETRY = self.geometry()
         super(TaskList, self).closeEvent(*args, **kwargs)
 
 

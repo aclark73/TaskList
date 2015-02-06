@@ -7,10 +7,9 @@ import subprocess
 import json
 import timer_widget
 from timer_widget import Task
-from settings import Settings
+from settings import AppSettings
 
-class RedmineSettings(object):
-    prefix = None
+class TaskPickerSettings(AppSettings):
 #    BASE_URL = 'http://dmscode.iris.washington.edu/'
     BASE_URL = 'http://localhost/'
     USER = 3
@@ -18,23 +17,7 @@ class RedmineSettings(object):
     ISSUE_URL =  '%s/issues/%s'
     GEOMETRY = None
     
-    def __init__(self):
-        if not self.prefix:
-            self.prefix = str(__name__)
-    
-    def __getattribute__(self, name):
-        if name.isupper():
-            with Settings(self.prefix) as settings:
-                if settings.contains(name):
-                    return settings.value(name)
-        return object.__getattribute__(self, name)
-    
-    def __setattr__(self, name, value):
-        if name.isupper():
-            with Settings(self.prefix) as settings:
-                settings.setValue(name, value)
-        object.__setattr__(self, name, value)
-SETTINGS = RedmineSettings()
+SETTINGS = TaskPickerSettings()
 
 
 class RedmineProjectItem(QtGui.QTreeWidgetItem):
