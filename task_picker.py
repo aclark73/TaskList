@@ -155,7 +155,7 @@ class TaskPicker(QtGui.QDialog):
         
     def onItemClick(self, item, column):
         if isinstance(item, IssueItem):
-            project_item = self.projects.get(item.getProject())
+            project_item = self.projects.get(item.getProjectName())
             if project_item:
                 project_name = project_item.text(0)
             else:
