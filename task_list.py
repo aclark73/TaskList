@@ -37,6 +37,7 @@ class TaskList(QtGui.QMainWindow):
         self.setCentralWidget(self.timerWidget)
         self.timerWidget.toolbar.setMovable(False)
         self.addToolBar(QtCore.Qt.TopToolBarArea, self.timerWidget.toolbar)
+        self.timerWidget.updateUI()
         
     def showPicker(self):
         self.pickerWidget.show()

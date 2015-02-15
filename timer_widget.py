@@ -53,9 +53,9 @@ class TimerWidget(QtGui.QWidget):
     
     def initTimers(self):
         self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(1000)
+        self.timer.setInterval(200)
         self.timer.timeout.connect(self.tick)
-        self.timeToGo = datetime.timedelta(seconds=SETTINGS.TASK_TIME)
+        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_TIME)
         
         self.inactivityTimer = QtCore.QTimer(self)
         self.inactivityTimer.setInterval(SETTINGS.INACTIVE_TIME*60*1000)
@@ -162,9 +162,8 @@ class TimerWidget(QtGui.QWidget):
             self.isRunning() or not self.hasTask() 
             or self.isOnBreak() or self.needsBreak)
         self.stopButton.setDisabled(
-            not self.isRunning())
-        self.breakButton.setDisabled(
-            not self.isRunning() and not self.needsBreak)
+            not (self.isRunning() or self.isOnBreak()))
+        self.breakButton.setDisabled(self.isOnBreak())
         self.showTimeToGo()
 
     def isRunning(self):
@@ -194,7 +193,7 @@ class TimerWidget(QtGui.QWidget):
     
     def extendTask(self):
         """ Add additional task time """
-        self.timeToGo = datetime.timedelta(seconds=SETTINGS.TASK_EXTENSION)
+        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_EXTENSION)
         self.start()
     
     def hasTask(self):
