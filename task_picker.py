@@ -19,34 +19,55 @@ class TaskPickerSettings(AppSettings):
     
 SETTINGS = TaskPickerSettings()
 
-
-class RedmineProjectItem(QtGui.QTreeWidgetItem):
+class ProjectItem(QtGui.QTreeWidgetItem):
     itemType = QtGui.QTreeWidgetItem.UserType + 1
     def __init__(self, project, *args, **kwargs):
         self.project = project
         kwargs['type'] = self.itemType
-        super(RedmineProjectItem, self).__init__(*args, **kwargs)
-        self.setFlags(QtCore.Qt.ItemIsEnabled)
+        super(ProjectItem, self).__init__(*args, **kwargs)
+        # self.setFlags(QtCore.Qt.ItemIsEnabled)
         self.setFirstColumnSpanned(True)
         self.setText(0, self.project)
 
-
-class RedmineIssueItem(QtGui.QTreeWidgetItem):
-    itemType = RedmineProjectItem.itemType + 1
+class IssueItem(QtGui.QTreeWidgetItem):
+    itemType = ProjectItem.itemType + 1
     def __init__(self, issue, *args, **kwargs):
         self.issue = issue
         kwargs['type'] = self.itemType
-        super(RedmineIssueItem, self).__init__(*args, **kwargs)
-        # self.setText(0, self.issue.get('project').get('name'))
-        self.setText(0, "#%s" % self.issue.get('id'))
-        self.setText(1, self.issue.get('subject'))
+        super(IssueItem, self).__init__(*args, **kwargs)
+        self.setText(0, "#%s" % self.getId())
         self.setData(0, QtCore.Qt.ToolTipRole, self.getLink())
+        self.setText(1, self.getTitle())
+
+    def getLink(self):
+        raise NotImplementedError
+    
+    def getId(self):
+        raise NotImplementedError
+
+    def getTitle(self):
+        raise NotImplementedError
+
+    def getProjectName(self):
+        raise NotImplementedError
+
+class RedmineProjectItem(ProjectItem):
+    pass
+
+class RedmineIssueItem(IssueItem):
+
+    def getId(self):
+        return self.issue.get('id')
+
+    def getTitle(self):
+        return self.issue.get('subject')
 
     def getLink(self):
         link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue.get('id'))
         return QtCore.QUrl(link)
 
-
+    def getProjectName(self):
+        return self.issue.get('project').get('name')
 
 
 class TaskPicker(QtGui.QDialog):
@@ -92,6 +113,24 @@ class TaskPicker(QtGui.QDialog):
 #         self.show()
 
     def fetchTasks(self):
+        self.list.clear()
+        self.projects = {}
+        self.list.setSortingEnabled(False)
+        self.fetchRedmineTasks()
+        for column in range(self.list.columnCount()):
+            self.list.resizeColumnToContents(column)
+        self.list.setSortingEnabled(True)
+    
+    def addTask(self, item):
+        project_name = item.getProjectName()
+        project_item = self.projects.get(project_name)
+        if not project_item:
+            project_item = self.projects[project_name] = ProjectItem(project_name)
+            self.list.addTopLevelItem(project_item)
+        project_item.addChild(item)
+        
+    
+    def fetchRedmineTasks(self):
         if 'localhost' in SETTINGS.BASE_URL:
             with open('issues.json') as f:
                 j = json.load(f)
@@ -101,26 +140,22 @@ class TaskPicker(QtGui.QDialog):
             ))
             if r.ok:
                 j = r.json()
-        self.list.clear()
-        self.projects = {}
-        self.list.setSortingEnabled(False)
         for issue in j.get('issues'):
-            item = RedmineIssueItem(issue)
-            project = issue.get('project').get('name')
-            project_item = self.projects.get(project)
-            if not project_item:
-                self.projects[project] = project_item = RedmineProjectItem(project)
-                self.list.addTopLevelItem(project_item)
-            project_item.addChild(item)
-        for column in range(self.list.columnCount()):
-            self.list.resizeColumnToContents(column)
-        self.list.setSortingEnabled(True)
+            self.addTask(RedmineIssueItem(issue))
     
+        
     def onItemClick(self, item, column):
-        if isinstance(item, RedmineIssueItem):
-            self.pickedTask = Task("%s | %s | %s" % (item.text(0), item.text(1), item.text(2)))
+        if isinstance(item, IssueItem):
+            project_item = self.projects.get(item.getProject())
+            if project_item:
+                project_name = project_item.text(0)
+            else:
+                project_name = "?"
+            self.pickedTask = Task("%s | %s | %s" % (project_name, item.text(0), item.text(1)))
             if column == 0:
                 QtGui.QDesktopServices.openUrl(item.getLink())
+        elif isinstance(item, ProjectItem):
+            self.pickedTask = Task("%s" % item.text(0))
     
     def onPicked(self):
         self.picked.emit(self.pickedTask)
