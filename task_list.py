@@ -8,6 +8,7 @@ from timer_widget import TimerWidget
 from task_picker import TaskPicker
 from settings import AppSettings
 from logging import getLogger
+from models import TaskLog
 
 class TaskListSettings(AppSettings):
     GEOMETRY = None
@@ -46,7 +47,8 @@ class TaskList(QtGui.QMainWindow):
         self.timerWidget.setTask(task)
 
     def onTaskStopped(self, task, startTime, endTime):
-        print("%s,%s,%s" % (task, startTime, endTime))
+        log = TaskLog.log(task, startTime, endTime)
+        print(log)
 
     def closeEvent(self, *args, **kwargs):
         SETTINGS.GEOMETRY = self.geometry()

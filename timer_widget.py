@@ -3,6 +3,7 @@ import sys
 import datetime
 from logging import getLogger
 from settings import AppSettings
+from models import Task, NO_TASK
 
 LOGGER = getLogger(__name__)
 
@@ -20,15 +21,6 @@ class TimerState():
     RUNNING = 1
     ON_BREAK = 2
     
-
-class Task(object):
-    def __init__(self, s):
-        self.s = s
-    def __str__(self):
-        return self.s
-
-NO_TASK = Task("None")
-
 
 class TimerWidget(QtGui.QWidget):
     
