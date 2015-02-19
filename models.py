@@ -1,7 +1,14 @@
 from sqlalchemy import create_engine
 from sqlalchemy.types import DateTime
 # engine = create_engine('sqlite:///:memory:', echo=True)
-engine = create_engine('sqlite:////tmp/tasks.db', echo=True)
+from socket import gethostname
+
+if 'honu' in gethostname():
+    DB_URL = 'sqlite:////workspace/test/TaskList/tasks.db'
+else:
+    DB_URL = 'sqlite:////tmp/tasks.db'
+
+engine = create_engine(DB_URL, echo=True)
 
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=engine)
@@ -77,4 +84,14 @@ class TaskLog(Base):
         session.add(log)
         session.commit()
         return log
-    
+
+
+def run():
+    try:
+        task = Task.query().count()
+    except:
+        Base.metadata.create_all(engine)
+
+if __name__ == '__main__':
+    run()
+

@@ -6,10 +6,13 @@ import requests
 import json
 from models import Task, NO_TASK
 from settings import AppSettings
+from socket import gethostname
 
 class TaskPickerSettings(AppSettings):
-    # BASE_URL = 'http://dmscode.iris.washington.edu/'
-    BASE_URL = 'http://localhost/'
+    if 'honu' in gethostname():
+        BASE_URL = 'http://dmscode.iris.washington.edu/'
+    else:
+        BASE_URL = 'http://localhost/'
     USER = 3
     ISSUES_URL =  '%s/issues.json?assigned_to_id=%s&sort=updated_on:desc&status_id=open&limit=200'
     ISSUE_URL =  '%s/issues/%s'
@@ -28,12 +31,15 @@ class BasePickerItem(QtGui.QTreeWidgetItem):
         kwargs['type'] = self.itemType
         super(BasePickerItem, self).__init__(*args, **kwargs)
         self.init()
-    
+    def init(self):
+        pass
     def get_task(self):
         if not self.task:
             kwargs = self.get_task_kwargs()
             self.task = Task.get_or_create(**kwargs)
         return self.task
+    def get_task_kwargs(self):
+        raise NotImplementedError
 
 class ProjectItem(BasePickerItem):
     itemType = BasePickerItem.itemType + 1
