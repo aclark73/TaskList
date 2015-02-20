@@ -85,6 +85,10 @@ class TaskLog(Base):
         session.commit()
         return log
 
+    @classmethod
+    def query(cls):
+        return session.query(TaskLog)
+
 
 def run():
     try:
