@@ -2,11 +2,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.types import DateTime
 # engine = create_engine('sqlite:///:memory:', echo=True)
 from socket import gethostname
+import os
 
-if 'honu' in gethostname():
-    DB_URL = 'sqlite:////workspace/test/TaskList/tasks.db'
-else:
-    DB_URL = 'sqlite:////tmp/tasks.db'
+FILE_ROOT = os.path.expanduser('~/.TaskList')
+if not os.path.exists(FILE_ROOT):
+    os.makedirs(FILE_ROOT)
+DB_URL = 'sqlite:///%s/tasks.db' % FILE_ROOT
+
+# if 'honu' in gethostname():
+#     DB_URL = 'sqlite:////workspace/test/TaskList/tasks.db'
+# else:
+#     DB_URL = 'sqlite:////tmp/tasks.db'
 
 engine = create_engine(DB_URL, echo=True)
 
@@ -89,12 +95,17 @@ class TaskLog(Base):
     def query(cls):
         return session.query(TaskLog)
 
+_verified_db = False
+def verify_db():
+    if not _verified_db:
+        try:
+            for cls in (Task, TaskLog,):
+                cls.query().count()
+        except:
+            Base.metadata.create_all(engine)
 
 def run():
-    try:
-        task = Task.query().count()
-    except:
-        Base.metadata.create_all(engine)
+    verify_db()
 
 if __name__ == '__main__':
     run()
