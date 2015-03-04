@@ -50,10 +50,17 @@ class Task(Base):
                             self.project, self.name)
 
     def __str__(self):
-        s = [self.project]
+        s = []
+        if self.issue_id:
+            s.append("#%s" % self.issue_id)
+        s.append(self.project)
         if self.name:
             s.append(self.name)
         return " | ".join(s)
+
+    def save(self):
+        session.add(self)
+        session.commit()
 
     @classmethod
     def get_or_create(cls, **attrs):

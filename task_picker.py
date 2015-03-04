@@ -58,14 +58,14 @@ class IssueItem(BasePickerItem):
     itemType = ProjectItem.itemType + 1
     title = None
     project = None
-    link_label = None
+    issue_id = None
     link_url = None
     
     def init(self):
         assert(self.title)
         assert(self.project)
-        if self.link_label:
-            self.setText(0, self.link_label)
+        if self.issue_id:
+            self.setText(0, "#%s" % self.issue_id)
             if self.link_url:
                 self.setData(0, QtCore.Qt.ToolTipRole, self.link_url)
         self.setText(1, self.title)
@@ -75,6 +75,7 @@ class IssueItem(BasePickerItem):
             project=self.project, 
             name=self.title,
             source=self.source,
+            issue_id=self.issue_id
         )
 
 class LocalProjectItem(ProjectItem):
@@ -98,9 +99,8 @@ class RedmineIssueItem(IssueItem):
     issue = None
     def init(self):
         assert(self.issue)
-        issue_id = self.issue.get('id')
-        self.link_label = "#%s" % issue_id
-        link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, issue_id)
+        self.issue_id = self.issue.get('id')
+        link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue_id)
         self.link_url = QtCore.QUrl(link)
         self.title = self.issue.get('subject')
         self.project = self.issue.get('project').get('name')
@@ -109,7 +109,7 @@ class RedmineIssueItem(IssueItem):
         column = self.treeWidget().sortColumn()
         if column == 0:
             try:
-                return int(self.text(column)[1:]) < int(otherItem.text(column)[1:])
+                return int(self.issue_id) < int(otherItem.issue_id)
             except:
                 pass
         return super(RedmineIssueItem, self).__lt__(otherItem)
