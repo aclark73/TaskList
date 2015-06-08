@@ -28,20 +28,29 @@ class TaskList(QtGui.QMainWindow):
         self.timerWidget = TimerWidget()
         self.timerWidget.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.pickerWidget = TaskPicker(self.timerWidget)
-        self.pickerWidget.setModal(True)
+        # self.pickerWidget.setModal(True)
         
         self.timerWidget.taskNeeded.connect(self.showPicker)
         self.pickerWidget.picked.connect(self.onTaskPicked)
 
         self.timerWidget.stopped.connect(self.onTaskStopped)
 
-        self.setCentralWidget(self.timerWidget)
+        mainWidget = QtGui.QWidget()
+
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(self.pickerWidget)
+        layout.addWidget(self.timerWidget)
+        mainWidget.setLayout(layout)
+
+
+        self.setCentralWidget(mainWidget)
         self.timerWidget.toolbar.setMovable(False)
         self.addToolBar(QtCore.Qt.TopToolBarArea, self.timerWidget.toolbar)
         self.timerWidget.updateUI()
         
     def showPicker(self):
-        self.pickerWidget.show()
+        # self.pickerWidget.show()
+        pass
     
     def onTaskPicked(self, task):
         self.timerWidget.setTask(task)
@@ -74,7 +83,7 @@ def run():
     painter.setFont(font)
     
     print painter.font()
-    painter.fillRect(0,0,pm.width(),pm.height(),QtCore.Qt.red)
+    # painter.fillRect(0,0,pm.width(),pm.height(),QtCore.Qt.red)
     painter.drawText(0, pm.height(), "Test")
     painter.end()
     trayicon.setIcon(QtGui.QIcon(pm))

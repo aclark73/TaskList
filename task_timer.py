@@ -22,7 +22,7 @@ class TimerState():
     ON_BREAK = 2
     
 
-class TimerWidget(object):
+class TaskTimer(QtCore.QObject):
     
     started = QtCore.pyqtSignal(Task)
     stopped = QtCore.pyqtSignal(Task, datetime.datetime, datetime.datetime)
@@ -37,25 +37,30 @@ class TimerWidget(object):
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, taskLabel, timeLabel, *args, **kwargs):
-        super(TimerWidget, self).__init__(*args, **kwargs)
+    def __init__(self, app, timeLabel, taskLabel, progressBar, *args, **kwargs):
+        super(TaskTimer, self).__init__(*args, **kwargs)
+        self.app = app
+        self.initUI(timeLabel, taskLabel, progressBar)
         self.initTimers()
-        self.initUI(taskLabel, timeLabel)
         self.updateUI()
     
+    def setTimeToGo(self, minutes):
+        self.timeToGo = datetime.timedelta(minutes=minutes)
+        self.progressBar.setMaximum(minutes*60)
+    
     def initTimers(self):
-        self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(200)
+        self.timer = QtCore.QTimer()
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.tick)
-        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_TIME)
+        self.setTimeToGo(SETTINGS.TASK_TIME)
         
-        self.inactivityTimer = QtCore.QTimer(self)
+        self.inactivityTimer = QtCore.QTimer()
         self.inactivityTimer.setInterval(SETTINGS.INACTIVE_TIME*60*1000)
         self.inactivityTimer.timeout.connect(self.inactiveUser)
     
     def promptForBreak(self):
         if not self.breakPromptWidget:
-            w = QtGui.QMessageBox(self)
+            w = QtGui.QMessageBox(self.app)
             w.setWindowTitle('Break Time')
             w.setText("Ready for a break?")
             startButton = w.addButton("Ok", QtGui.QMessageBox.YesRole)
@@ -67,7 +72,7 @@ class TimerWidget(object):
     
     def promptForBreakDone(self):
         if not self.breakDoneWidget:
-            w = QtGui.QMessageBox(self)
+            w = QtGui.QMessageBox(self.app)
             w.setWindowTitle('Break Done')
             w.setText("Ready for more work?")
             _startButton = w.addButton("Ok", QtGui.QMessageBox.YesRole)
@@ -77,9 +82,10 @@ class TimerWidget(object):
         self.breakDoneWidget.show()
     
 
-    def initUI(self, taskLabel, timeLabel):
-        self.taskLabel = taskLabel
+    def initUI(self, timeLabel, taskLabel, progressBar):
         self.timeLabel = timeLabel
+        self.taskLabel = taskLabel
+        self.progressBar = progressBar
 
         #self.displayMessage = QtGui.QLabel("", self)
         #self.displayMessage.hide()
@@ -105,7 +111,8 @@ class TimerWidget(object):
         self.stop()
         self.setState(TimerState.ON_BREAK)
         self.needsBreak = False
-        self.timeToGo = datetime.timedelta(minutes=minutes)
+        self.taskLabel.setText("On break")
+        self.setTimeToGo(minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
         self.timer.start()
         self.updateUI()
@@ -115,8 +122,7 @@ class TimerWidget(object):
     
     def extendTask(self):
         """ Add additional task time """
-        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_EXTENSION)
-        self.start()
+        self.start(extended=True)
     
     def hasTask(self):
         return self.task != NO_TASK
@@ -127,10 +133,15 @@ class TimerWidget(object):
         self.state = state
     
     def showTimeToGo(self):
-        seconds = self.timeToGo.seconds
+        # When clock reaches 0, time may go negative
+        if self.timeToGo.days < 0:
+            seconds = 0
+        else:
+            seconds = self.timeToGo.seconds
         # Round up number of seconds
         if self.timeToGo.microseconds:
             seconds += 1
+        self.progressBar.setValue(seconds)
         hours = seconds / 3600
         minutes = (seconds / 60) % 60
         seconds = seconds % 60
@@ -143,26 +154,21 @@ class TimerWidget(object):
 
     def tick(self):
         now = datetime.datetime.now()
+        self.timeToGo = self.endTime - now
+        self.showTimeToGo()
         if now > self.endTime:
             self.timeUp()
-        else:
-            self.timeToGo = self.endTime - now
-            self.showTimeToGo()
     
     def setTask(self, task):
         if task == self.task:
             return
         if self.isRunning():
             self.stop()
-            wasRunning = True
-        else:
-            wasRunning = False
         self.task = task
-        self.taskLabel.setText(str(task))
+        self.taskLabel.setText(str(self.task))
         self.canContinue = False
         self.updateUI()
-        if True: # wasRunning:
-            self.start()
+        self.start()
 
     def timeUp(self):
         if self.isRunning():
@@ -188,13 +194,18 @@ class TimerWidget(object):
         LOGGER.info("Activity!")
         self.inactivityTimer.start()
 
-    def start(self):
+    def start(self, extended=False):
         self.activity()
         if self.isRunning():
             return
         self.startTime = datetime.datetime.now()
+        if extended:
+            self.setTimeToGo(SETTINGS.TASK_EXTENSION)
+        else:
+            self.setTimeToGo(SETTINGS.TASK_TIME)
         self.endTime = self.startTime + self.timeToGo
         self.setState(TimerState.RUNNING)
+        self.taskLabel.setText(str(self.task))
         self.started.emit(self.task)
         self.timer.start()
         self.updateUI()
@@ -206,7 +217,6 @@ class TimerWidget(object):
         if self.isRunning():
             self.stopped.emit(self.task, self.startTime, self.endTime)
             self.canContinue = True
-        self.timeToGo = datetime.timedelta(minutes=SETTINGS.TASK_TIME)
         self.setState(TimerState.STOPPED)
         self.updateUI()
 

@@ -1,8 +1,11 @@
 from sqlalchemy import create_engine
-from sqlalchemy.types import DateTime
+from sqlalchemy.types import DateTime, Boolean
+from sqlalchemy.orm import joinedload
 # engine = create_engine('sqlite:///:memory:', echo=True)
 from socket import gethostname
 import os
+import json
+import requests
 
 FILE_ROOT = os.path.expanduser('~/.TaskList')
 if not os.path.exists(FILE_ROOT):
@@ -77,6 +80,8 @@ class Task(Base):
 
 NO_TASK = Task(name="None")
 
+REDMINE_TASK_URL = 'http://dmscode.iris.washington.edu/time_entries.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837'
+
 class TaskLog(Base):
     __tablename__ = 'task_log'
     
@@ -84,6 +89,7 @@ class TaskLog(Base):
     task_id = Column(ForeignKey('task.id'))
     start_time = Column(DateTime)
     end_time = Column(DateTime)
+    uploaded = Column(Boolean)
     
     task = relationship("Task", backref=backref('logs', order_by=id))
     
@@ -94,6 +100,16 @@ class TaskLog(Base):
     @classmethod
     def log(cls, task, start_time, end_time):
         log = TaskLog(task=task, start_time=start_time, end_time=end_time)
+        if task.issue_id:
+            time_spent = log.end_time - log.start_time
+            log_dict = dict(
+                time_entry=dict(
+                    issue_id=int(task.issue_id),
+                    spent_on=log.start_time.date().isoformat(),
+                    hours=float(time_spent.seconds) / 3600
+                )
+            )
+            requests.post(REDMINE_TASK_URL, json=log_dict)
         session.add(log)
         session.commit()
         return log
@@ -114,6 +130,24 @@ def verify_db():
 def run():
     verify_db()
 
+def upload_redmine():
+    logs = session.query(TaskLog).filter(TaskLog.uploaded != True).options(joinedload(TaskLog.task)).all()
+    for log in logs:
+        if log.task.issue_id:
+            time_spent = log.end_time - log.start_time
+            log_dict = dict(
+                time_entry=dict(
+                    issue_id=int(log.task.issue_id),
+                    spent_on=log.start_time.date().isoformat(),
+                    hours=float(time_spent.seconds) / 3600
+                )
+            )
+            requests.post(REDMINE_TASK_URL, json=log_dict)
+            print json.dumps(log_dict)
+            log.uploaded = True
+            session.commit()
+
 if __name__ == '__main__':
-    run()
+    # run()
+    upload_redmine()
 

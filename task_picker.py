@@ -9,7 +9,7 @@ from settings import AppSettings
 from socket import gethostname
 
 class TaskPickerSettings(AppSettings):
-    if 'honu' in gethostname():
+    if 'honu' in gethostname().lower():
         BASE_URL = 'http://dmscode.iris.washington.edu/'
     else:
         BASE_URL = 'http://localhost/'
@@ -115,47 +115,27 @@ class RedmineIssueItem(IssueItem):
         return super(RedmineIssueItem, self).__lt__(otherItem)
 
 
-class TaskPicker(QtGui.QDialog):
+class TaskPicker(QtCore.QObject):
 
     picked = QtCore.pyqtSignal(Task)
     
     pickedTask = NO_TASK
     savedGeometry = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, app, treeWidget, *args, **kwargs):
         super(TaskPicker, self).__init__(*args, **kwargs)
-        self.initWidgets()
-        geometry = SETTINGS.GEOMETRY
-        if geometry:
-            self.setGeometry(geometry.toRect())
+        self.app = app
+        self.initWidgets(treeWidget)
 
-    def initWidgets(self):
+    def initWidgets(self, treeWidget):
 #         main_widget = QtGui.QWidget(self)
 #         self.map = BasemapWidget(main_widget)
 #         self.waveforms = MPLWidget(main_widget)
-        self.list = QtGui.QTreeWidget(self)
+        self.list = treeWidget
         # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
         self.list.setHeaderLabels([ 'Id', 'Title' ])
-        self.list.itemClicked.connect(self.onItemClick)
-        self.list.doubleClicked.connect(self.onPicked)
-
-        self.fetchButton = QtGui.QPushButton('Fetch')
-        self.fetchButton.clicked.connect(self.fetchTasks)
-        self.okButton = QtGui.QPushButton('Ok')
-        self.okButton.clicked.connect(self.onPicked)
-        
-
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.list)
-        button_layout = QtGui.QHBoxLayout()
-        button_layout.addWidget(self.fetchButton)
-        button_layout.addWidget(self.okButton)
-        layout.addLayout(button_layout)
-        self.setLayout(layout)
-
-        # self.fetchTasks()
-#         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-#         self.show()
+        #self.list.itemClicked.connect(self.onItemClick)
+        #self.list.doubleClicked.connect(self.onPicked)
 
     def fetchTasks(self):
         self.list.clear()
@@ -201,23 +181,20 @@ class TaskPicker(QtGui.QDialog):
             self.addItem(RedmineIssueItem(issue=issue))
     
         
-    def onItemClick(self, item, column):
-        self.pickedTask = item.get_task()
+    #def onItemClick(self, item, column):
+    #    self.pickedTask = item.get_task()
     
-    def onPicked(self):
-        self.picked.emit(self.pickedTask)
-        self.close()
+    #def onPicked(self):
+    #    self.picked.emit(self.pickedTask)
+    #    # self.close()
     
-    def closeEvent(self, *args, **kwargs):
-        SETTINGS.GEOMETRY = self.geometry()
-        super(TaskPicker, self).closeEvent(*args, **kwargs)
-        
 
 def run():
     app = QtGui.QApplication(sys.argv)
 
 #     trayicon.showMessage('test', 'test message')
-    w = TaskPicker()
+    p = QtGui.QTreeWidget()
+    w = TaskPicker(p)
     
     def on_ok(label):
         print(label)
