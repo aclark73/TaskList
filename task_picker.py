@@ -14,7 +14,7 @@ class TaskPickerSettings(AppSettings):
     else:
         BASE_URL = 'http://localhost/'
     USER = 3
-    ISSUES_URL =  '%s/issues.json?assigned_to_id=%s&sort=updated_on:desc&status_id=open&limit=200'
+    ISSUES_URL =  '%s/issues.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837&assigned_to_id=me&sort=updated_on:desc&status_id=open&limit=200'
     ISSUE_URL =  '%s/issues/%s'
     GEOMETRY = None
     
@@ -172,9 +172,7 @@ class TaskPicker(QtCore.QObject):
             with open('issues.json') as f:
                 j = json.load(f)
         else:
-            r = requests.get(SETTINGS.ISSUES_URL % (
-                SETTINGS.BASE_URL, SETTINGS.USER
-            ))
+            r = requests.get(SETTINGS.ISSUES_URL % SETTINGS.BASE_URL)
             if r.ok:
                 j = r.json()
         for issue in j.get('issues'):
