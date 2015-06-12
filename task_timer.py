@@ -161,14 +161,17 @@ class TaskTimer(QtCore.QObject):
     
     def setTask(self, task):
         if task == self.task:
+            if not self.isRunning():
+                self.start()
             return
-        if self.isRunning():
-            self.stop()
-        self.task = task
-        self.taskLabel.setText(str(self.task))
-        self.canContinue = False
-        self.updateUI()
-        self.start()
+        else:
+            if self.isRunning():
+                self.stop()
+            self.task = task
+            self.taskLabel.setText(str(self.task))
+            self.canContinue = False
+            self.updateUI()
+            self.start()
 
     def timeUp(self):
         if self.isRunning():
