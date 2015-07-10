@@ -2,7 +2,6 @@ from PyQt4 import QtGui
 from task_list_ui import Ui_MainWindow
 from task_picker import TaskPicker, TaskPickerHistory
 from task_timer import TaskTimer
-from models import TaskLog
 import sys
 
 class TaskListGui(QtGui.QMainWindow):
@@ -40,9 +39,11 @@ class TaskListGui(QtGui.QMainWindow):
     
     def go(self):
         self.taskTimer.start()
+        self.ui.statusBar.showMessage("Running")
     
     def pause(self):
-        self.taskTimer.startBreak(self.taskTimer.isOnBreak())
+        self.taskTimer.stop()
+        self.ui.statusBar.showMessage("Paused")
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
