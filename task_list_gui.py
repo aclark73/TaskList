@@ -1,6 +1,6 @@
 from PyQt4 import QtGui
 from task_list_ui import Ui_MainWindow
-from task_picker import TaskPicker
+from task_picker import TaskPicker, TaskPickerHistory
 from task_timer import TaskTimer
 from models import TaskLog
 import sys
@@ -13,8 +13,10 @@ class TaskListGui(QtGui.QMainWindow):
         self.ui.setupUi(self)
         
         self.taskPicker = TaskPicker(self, self.ui.treeWidget)
+        self.taskPickerHistory = TaskPickerHistory(self, self.ui.recentWidget)
+        self.taskPicker.picked.connect(self.taskPickerHistory.addItem)
+        
         self.taskTimer = TaskTimer(self, self.ui.timeLabel, self.ui.taskLabel, self.ui.progressBar)
-
         self.taskTimer.started.connect(self.onStarted)
         self.taskTimer.stopped.connect(self.onStopped)
     

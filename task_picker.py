@@ -186,6 +186,11 @@ class TaskPicker(QtCore.QObject):
     #    self.picked.emit(self.pickedTask)
     #    # self.close()
     
+class TaskPickerHistory(TaskPicker):
+    def addItem(self, item):
+        self.list.addTopLevelItem(item)
+
+
 
 def run():
     app = QtGui.QApplication(sys.argv)
