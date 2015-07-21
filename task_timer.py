@@ -8,11 +8,11 @@ from models import Task, NO_TASK
 LOGGER = getLogger(__name__)
 
 class TimerSettings(AppSettings):
-    TASK_TIME = 29
-    TASK_EXTENSION = 5
+    TASK_TIME = 30
+    TASK_EXTENSION = 10
     INACTIVE_TIME = 1
     BREAK_TIME = 1
-    BREAK_EXTENSION = 10
+    BREAK_EXTENSION = 20
 SETTINGS = TimerSettings()
 
 
