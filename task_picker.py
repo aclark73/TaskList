@@ -1,6 +1,7 @@
 #!/usr/bin/env pythonw
 
-from PyQt4 import QtGui, QtCore
+import Tkinter as tk
+import ttk
 import sys
 import requests
 import json
@@ -17,19 +18,16 @@ class TaskPickerSettings(AppSettings):
     ISSUES_URL =  '%s/issues.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837&assigned_to_id=me&sort=updated_on:desc&status_id=open&limit=200'
     ISSUE_URL =  '%s/issues/%s'
     GEOMETRY = None
-    
+
 SETTINGS = TaskPickerSettings()
 
-class BasePickerItem(QtGui.QTreeWidgetItem):
-    itemType = QtGui.QTreeWidgetItem.UserType
+class BasePickerItem(object):
     source = ''
     task = None
     def __init__(self, *args, **kwargs):
         for k in kwargs.keys():
             if hasattr(self, k) and getattr(self, k) is None:
                 setattr(self, k, kwargs.pop(k))
-        kwargs['type'] = self.itemType
-        super(BasePickerItem, self).__init__(*args, **kwargs)
         self.init()
     def init(self):
         pass
@@ -40,43 +38,50 @@ class BasePickerItem(QtGui.QTreeWidgetItem):
         return self.task
     def get_task_kwargs(self):
         raise NotImplementedError
+    def get_label(self):
+        raise NotImplementedError
+    def get_iid(self):
+        raise NotImplementedError
 
 class ProjectItem(BasePickerItem):
-    itemType = BasePickerItem.itemType + 1
     name = None
-    def init(self):
-        self.setFirstColumnSpanned(True)
-        self.setText(0, self.name)
     def get_task_kwargs(self):
         return dict(
             project=self.name,
             name='',
             source=self.source
         )
+    def get_label(self):
+        return self.name
+    def get_iid(self):
+        return "P.%s.%s" % (self.source, self.name)
 
 class IssueItem(BasePickerItem):
-    itemType = ProjectItem.itemType + 1
     title = None
     project = None
     issue_id = None
     link_url = None
-    
+
     def init(self):
         assert(self.title)
         assert(self.project)
+
+    def get_label(self):
         if self.issue_id:
-            self.setText(0, "#%s" % self.issue_id)
-            if self.link_url:
-                self.setData(0, QtCore.Qt.ToolTipRole, self.link_url)
-        self.setText(1, self.title)
+            return "#%s %s" % (self.issue_id, self.title)
+        else:
+            return self.title
 
     def get_task_kwargs(self):
         return dict(
-            project=self.project, 
+            project=self.project,
             name=self.title,
             source=self.source,
             issue_id=self.issue_id
         )
+
+    def get_iid(self):
+        return "I.%s.%s.%s.%s" % (self.source, self.project, self.issue_id, self.title)
 
 class LocalProjectItem(ProjectItem):
     def init(self):
@@ -100,64 +105,61 @@ class RedmineIssueItem(IssueItem):
     def init(self):
         assert(self.issue)
         self.issue_id = self.issue.get('id')
-        link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue_id)
-        self.link_url = QtCore.QUrl(link)
+        # link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue_id)
         self.title = self.issue.get('subject')
         self.project = self.issue.get('project').get('name')
         super(RedmineIssueItem, self).init()
-    def __lt__(self, otherItem):
-        column = self.treeWidget().sortColumn()
-        if column == 0:
-            try:
-                return int(self.issue_id) < int(otherItem.issue_id)
-            except:
-                pass
-        return super(RedmineIssueItem, self).__lt__(otherItem)
 
 
-class TaskPicker(QtCore.QObject):
+class TaskPicker(tk.Frame):
 
-    picked = QtCore.pyqtSignal(Task)
-    
+    picked_event = '<<picked>>'
+
     pickedTask = NO_TASK
     savedGeometry = None
+    projects = None
+    iids = None
+    list = None
 
-    def __init__(self, app, treeWidget, *args, **kwargs):
-        super(TaskPicker, self).__init__(*args, **kwargs)
-        self.app = app
-        self.initWidgets(treeWidget)
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+        self.initWidgets()
 
-    def initWidgets(self, treeWidget):
+    def initWidgets(self):
 #         main_widget = QtGui.QWidget(self)
 #         self.map = BasemapWidget(main_widget)
 #         self.waveforms = MPLWidget(main_widget)
-        self.list = treeWidget
+        self.list = ttk.Treeview(self)
+        self.list.pack()
+        self.list.heading('#0', text='Task')
         # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
-        self.list.setHeaderLabels([ 'Id', 'Title' ])
+        # self.list.setHeaderLabels([ 'Id', 'Title' ])
+        self.list.bind('<<TreeviewSelect>>', self.onItemSelected)
+        self.list.bind('<Double-Button>', self.onItemPicked)
         #self.list.itemClicked.connect(self.onItemClick)
         #self.list.doubleClicked.connect(self.onPicked)
 
     def fetchTasks(self):
-        self.list.clear()
+        if self.iids:
+            self.list.delete(self.iids.keys())
         self.projects = {}
-        self.list.setSortingEnabled(False)
+        self.iids = {}
         self.fetchLocalTasks()
         self.fetchRedmineTasks()
-        for column in range(self.list.columnCount()):
-            self.list.resizeColumnToContents(column)
-        self.list.setSortingEnabled(True)
 
     def addProject(self, project):
         self.projects[project.name] = project
-        self.list.addTopLevelItem(project)
+        self.iids[project.get_iid()] = project
+        self.list.insert('', 'end', iid=project.get_iid(), text=project.get_label())
         return project
-    
+
     def addItem(self, item):
-        project_item = self.projects.get(item.project)
-        if not project_item:
-            project_item = self.addProject(ProjectItem(name=item.project))
-        project_item.addChild(item)
-        
+        project = self.projects.get(item.project)
+        if not project:
+            project = self.addProject(ProjectItem(name=item.project))
+        self.iids[item.get_iid()] = item
+        self.list.insert(project.get_iid(), 'end', iid=item.get_iid(), text=item.get_label())
+
     def fetchLocalTasks(self):
         tasks = Task.query().filter_by(source=LocalIssueItem.source).all()
         for task in tasks:
@@ -166,7 +168,7 @@ class TaskPicker(QtCore.QObject):
                     self.addProject(LocalProjectItem(task=task))
             else:
                 self.addItem(LocalIssueItem(task=task))
-    
+
     def fetchRedmineTasks(self):
         if 'localhost' in SETTINGS.BASE_URL:
             with open('issues.json') as f:
@@ -177,30 +179,23 @@ class TaskPicker(QtCore.QObject):
                 j = r.json()
         for issue in j.get('issues'):
             self.addItem(RedmineIssueItem(issue=issue))
-    
-        
-    #def onItemClick(self, item, column):
-    #    self.pickedTask = item.get_task()
-    
-    #def onPicked(self):
-    #    self.picked.emit(self.pickedTask)
-    #    # self.close()
-    
+
+
+    def onItemSelected(self, ev):
+        self.pickedTask = self.iids[self.list.focus()]
+        # self.pickedTask = item.get_task()
+
+    def onItemPicked(self, ev):
+        self.event_generate(self.picked_event)
+        # self.close()
+
 
 def run():
-    app = QtGui.QApplication(sys.argv)
-
-#     trayicon.showMessage('test', 'test message')
-    p = QtGui.QTreeWidget()
-    w = TaskPicker(p)
-    
-    def on_ok(label):
-        print(label)
-    w.picked.connect(on_ok)
-#     w = QtGui.QWidget()
-    w.show()
-    
-    sys.exit(app.exec_())
+    root = tk.Tk()
+    w = TaskPicker(root)
+    w.pack()
+    w.fetchTasks()
+    root.mainloop()
 
 if __name__ == '__main__':
     run()
