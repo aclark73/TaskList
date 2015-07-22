@@ -6,10 +6,10 @@ import sys
 import requests
 import json
 from models import Task, NO_TASK
-from settings import AppSettings
+# from settings import AppSettings
 from socket import gethostname
 
-class TaskPickerSettings(AppSettings):
+class TaskPickerSettings(object):
     if 'honu' in gethostname().lower():
         BASE_URL = 'http://dmscode.iris.washington.edu/'
     else:
@@ -34,7 +34,7 @@ class BasePickerItem(object):
     def get_task(self):
         if not self.task:
             kwargs = self.get_task_kwargs()
-            self.task = Task.get_or_create(**kwargs)
+            (self.task, _) = Task.get_or_create(**kwargs)
         return self.task
     def get_task_kwargs(self):
         raise NotImplementedError
@@ -161,7 +161,7 @@ class TaskPicker(tk.Frame):
         self.list.insert(project.get_iid(), 'end', iid=item.get_iid(), text=item.get_label())
 
     def fetchLocalTasks(self):
-        tasks = Task.query().filter_by(source=LocalIssueItem.source).all()
+        tasks = Task.select().where(Task.source==LocalIssueItem.source)
         for task in tasks:
             if not task.name:
                 if task.project not in self.projects:
