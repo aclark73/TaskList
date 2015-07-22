@@ -1,4 +1,5 @@
-from PyQt4 import QtGui, QtCore
+import Tkinter as tk
+import ttk
 import sys
 import datetime
 from logging import getLogger
@@ -7,7 +8,7 @@ from models import Task, NO_TASK
 
 LOGGER = getLogger(__name__)
 
-class TimerSettings(AppSettings):
+class TimerSettings(object):
     TASK_TIME = 30
     TASK_EXTENSION = 10
     INACTIVE_TIME = 1
@@ -22,11 +23,11 @@ class TimerState():
     ON_BREAK = 2
     
 
-class TaskTimer(QtCore.QObject):
+class TaskTimer(tk.Frame):
     
-    started = QtCore.pyqtSignal(Task)
-    stopped = QtCore.pyqtSignal(Task, datetime.datetime, datetime.datetime)
-    taskNeeded = QtCore.pyqtSignal()
+    started_event = '<<Started>>' # (Task)
+    stopped_event = '<<Stopped>>' # (Task, datetime.datetime, datetime.datetime)
+    need_task_event = '<<NeedTask>>'
     
     state = None
     
@@ -37,9 +38,8 @@ class TaskTimer(QtCore.QObject):
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, app, timeLabel, taskLabel, progressBar, *args, **kwargs):
+    def __init__(self, timeLabel, taskLabel, progressBar, *args, **kwargs):
         super(TaskTimer, self).__init__(*args, **kwargs)
-        self.app = app
         self.initUI(timeLabel, taskLabel, progressBar)
         self.initTimers()
         self.updateUI()
