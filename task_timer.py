@@ -1,10 +1,11 @@
 import Tkinter as tk
 import ttk
+import tkMessageBox
 import sys
 import datetime
 import threading
 from logging import getLogger
-from settings import AppSettings
+# from settings import AppSettings
 from models import Task, NO_TASK
 
 LOGGER = getLogger(__name__)
@@ -39,15 +40,15 @@ class TaskTimer(tk.Frame):
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, timeLabel, taskLabel, progressBar, *args, **kwargs):
-        super(TaskTimer, self).__init__(*args, **kwargs)
-        self.initUI(timeLabel, taskLabel, progressBar)
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+        self.initUI()
         self.initTimers()
-        self.updateUI()
+        self.tick()
     
     def setTimeToGo(self, minutes):
         self.timeToGo = datetime.timedelta(minutes=minutes)
-        self.progressBar.setMaximum(minutes*60)
+        self.progressBar.length = minutes*60
     
     def initTimers(self):
         self.timer = threading.Timer(.1, self.tick)
@@ -56,33 +57,25 @@ class TaskTimer(tk.Frame):
         self.inactivityTimer = threading.Timer(SETTINGS.INACTIVE_TIME, self.inactiveUser)
     
     def promptForBreak(self):
-        if not self.breakPromptWidget:
-            w = QtGui.QMessageBox(self.app)
-            w.setWindowTitle('Break Time')
-            w.setText("Ready for a break?")
-            startButton = w.addButton("Ok", QtGui.QMessageBox.YesRole)
-            startButton.clicked.connect(self.startBreak)
-            snoozeButton = w.addButton("Almost done", QtGui.QMessageBox.NoRole)
-            snoozeButton.clicked.connect(self.extendTask)
-            self.breakPromptWidget = w
-        self.breakPromptWidget.show()
+        if tkMessageBox.askyesno('Break Time', 'Ready for a break?'):
+            self.startBreak()
+        else:
+            self.extendTask()
     
     def promptForBreakDone(self):
-        if not self.breakDoneWidget:
-            w = QtGui.QMessageBox(self.app)
-            w.setWindowTitle('Break Done')
-            w.setText("Ready for more work?")
-            _startButton = w.addButton("Ok", QtGui.QMessageBox.YesRole)
-            snoozeButton = w.addButton("Extended break", QtGui.QMessageBox.NoRole)
-            snoozeButton.clicked.connect(self.extendBreak)
-            self.breakDoneWidget = w
-        self.breakDoneWidget.show()
-    
+        if not tkMessageBox.askyesno('Break Done', 'Ready for more work?'):
+            self.extendBreak()    
 
-    def initUI(self, timeLabel, taskLabel, progressBar):
-        self.timeLabel = timeLabel
-        self.taskLabel = taskLabel
-        self.progressBar = progressBar
+    def initUI(self):
+        self.list = ttk.Treeview(self)
+        self.list.pack()
+
+        self.timeLabel = tk.Label(self, text="time")
+        self.timeLabel.pack()
+        self.taskLabel = tk.Label(self, text="task")
+        self.taskLabel.pack()
+        self.progressBar = ttk.Progressbar(self)
+        self.progressBar.pack()
 
         #self.displayMessage = QtGui.QLabel("", self)
         #self.displayMessage.hide()
@@ -108,7 +101,7 @@ class TaskTimer(tk.Frame):
         self.stop()
         self.setState(TimerState.ON_BREAK)
         self.needsBreak = False
-        self.taskLabel.setText("On break")
+        self.taskLabel.text = "On break"
         self.setTimeToGo(minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
         self.timer.start()
@@ -138,7 +131,7 @@ class TaskTimer(tk.Frame):
         # Round up number of seconds
         if self.timeToGo.microseconds:
             seconds += 1
-        self.progressBar.setValue(seconds)
+        self.progressBar.value = seconds
         hours = seconds / 3600
         minutes = (seconds / 60) % 60
         seconds = seconds % 60
@@ -147,7 +140,7 @@ class TaskTimer(tk.Frame):
         else:
             display = "%d" % minutes
         display += ":%02d" % seconds
-        self.timeLabel.setText(display)
+        self.timeLabel.text = display
 
     def tick(self):
         now = datetime.datetime.now()
@@ -185,9 +178,7 @@ class TaskTimer(tk.Frame):
         LOGGER.info("Inactivity!")
         self.inactivityTimer.stop()
         if self.isStopped():
-            messageBox = QtGui.QMessageBox(self)
-            messageBox.setText("Still there?")
-            messageBox.exec_()
+            tkMessageBox.showinfo("Inactivity", "Still there?")
             self.inactivityTimer.start()
     
     def activity(self):
@@ -225,21 +216,21 @@ class TaskTimer(tk.Frame):
         self.taskNeeded.emit()
     
 def run():
-    app = QtGui.QApplication(sys.argv)
-    w = TimerWidget()
+    root = tk.Tk()
+    w = TaskTimer(root)
     
-    def onTaskNeeded():
-        w.setTask(Task("Some task"))
-    w.taskNeeded.connect(onTaskNeeded)
-    def onStart(task):
-        LOGGER.info("Started %s" % task)
-    w.started.connect(onStart)
-    def onStop(task):
-        LOGGER.info("Stopped %s" % task)
-    w.stopped.connect(onStop)
-    w.show()
+    # def onTaskNeeded():
+    #     w.setTask(Task("Some task"))
+    # w.taskNeeded.connect(onTaskNeeded)
+    # def onStart(task):
+    #     LOGGER.info("Started %s" % task)
+    # w.started.connect(onStart)
+    # def onStop(task):
+    #     LOGGER.info("Stopped %s" % task)
+    # w.stopped.connect(onStop)
+    # w.show()
     
-    sys.exit(app.exec_())
+    root.mainloop()
 
 if __name__ == '__main__':
     run()
