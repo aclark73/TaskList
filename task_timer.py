@@ -8,7 +8,7 @@ from models import Task, NO_TASK
 LOGGER = getLogger(__name__)
 
 class TimerSettings(AppSettings):
-    TASK_TIME = 29
+    TASK_TIME = 1
     TASK_EXTENSION = 5
     INACTIVE_TIME = 1
     BREAK_TIME = 1
@@ -26,6 +26,7 @@ class TaskTimer(QtCore.QObject):
     
     started = QtCore.pyqtSignal(Task)
     stopped = QtCore.pyqtSignal(Task, datetime.datetime, datetime.datetime)
+    onBreak = QtCore.pyqtSignal()
     taskNeeded = QtCore.pyqtSignal()
     
     state = None
@@ -110,6 +111,7 @@ class TaskTimer(QtCore.QObject):
             minutes = SETTINGS.BREAK_TIME
         self.stop()
         self.setState(TimerState.ON_BREAK)
+        self.onBreak.emit()
         self.needsBreak = False
         self.taskLabel.setText("On break")
         self.setTimeToGo(minutes)
@@ -188,7 +190,7 @@ class TaskTimer(QtCore.QObject):
         LOGGER.info("Inactivity!")
         self.inactivityTimer.stop()
         if self.isStopped():
-            messageBox = QtGui.QMessageBox(self)
+            messageBox = QtGui.QMessageBox(self.app)
             messageBox.setText("Still there?")
             messageBox.exec_()
             self.inactivityTimer.start()
@@ -200,6 +202,8 @@ class TaskTimer(QtCore.QObject):
     def start(self, extended=False):
         self.activity()
         if self.isRunning():
+            return
+        if not self.hasTask():
             return
         self.startTime = datetime.datetime.now()
         if extended:

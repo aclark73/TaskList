@@ -134,8 +134,7 @@ class TaskPicker(QtCore.QObject):
         self.list = treeWidget
         # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
         self.list.setHeaderLabels([ 'Id', 'Title' ])
-        #self.list.itemClicked.connect(self.onItemClick)
-        #self.list.doubleClicked.connect(self.onPicked)
+        self.list.itemClicked.connect(self.onItemClick)
 
     def fetchTasks(self):
         self.list.clear()
@@ -179,12 +178,10 @@ class TaskPicker(QtCore.QObject):
             self.addItem(RedmineIssueItem(issue=issue))
     
         
-    #def onItemClick(self, item, column):
-    #    self.pickedTask = item.get_task()
+    def onItemClick(self, item, column):
+        self.pickedTask = item.get_task()
+        self.picked.emit(self.pickedTask)
     
-    #def onPicked(self):
-    #    self.picked.emit(self.pickedTask)
-    #    # self.close()
     
 class TaskPickerHistory(TaskPicker):
     def addItem(self, item):
