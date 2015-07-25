@@ -2,6 +2,7 @@ import Tkinter as tk
 import ttk
 import sys
 import datetime
+import threading
 from logging import getLogger
 from settings import AppSettings
 from models import Task, NO_TASK
@@ -49,14 +50,10 @@ class TaskTimer(tk.Frame):
         self.progressBar.setMaximum(minutes*60)
     
     def initTimers(self):
-        self.timer = QtCore.QTimer()
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.tick)
+        self.timer = threading.Timer(.1, self.tick)
         self.setTimeToGo(SETTINGS.TASK_TIME)
         
-        self.inactivityTimer = QtCore.QTimer()
-        self.inactivityTimer.setInterval(SETTINGS.INACTIVE_TIME*60*1000)
-        self.inactivityTimer.timeout.connect(self.inactiveUser)
+        self.inactivityTimer = threading.Timer(SETTINGS.INACTIVE_TIME, self.inactiveUser)
     
     def promptForBreak(self):
         if not self.breakPromptWidget:
