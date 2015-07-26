@@ -44,7 +44,7 @@ class TaskTimer(tk.Frame):
         tk.Frame.__init__(self, *args, **kwargs)
         self.initUI()
         self.initTimers()
-        self.tick()
+        self.updateUI()
     
     def setTimeToGo(self, minutes):
         self.timeToGo = datetime.timedelta(minutes=minutes)
@@ -176,7 +176,7 @@ class TaskTimer(tk.Frame):
         
     def inactiveUser(self):
         LOGGER.info("Inactivity!")
-        self.inactivityTimer.stop()
+        self.inactivityTimer.cancel()
         if self.isStopped():
             tkMessageBox.showinfo("Inactivity", "Still there?")
             self.inactivityTimer.start()
@@ -196,29 +196,30 @@ class TaskTimer(tk.Frame):
             self.setTimeToGo(SETTINGS.TASK_TIME)
         self.endTime = self.startTime + self.timeToGo
         self.setState(TimerState.RUNNING)
-        self.taskLabel.setText(str(self.task))
-        self.started.emit(self.task)
+        self.taskLabel.text = str(self.task)
+        self.event_generate(self.started_event) # , self.task)
         self.timer.start()
         self.updateUI()
     
     def stop(self):
         self.activity()
-        self.timer.stop()
+        self.timer.cancel()
         self.endTime = datetime.datetime.now()
         if self.isRunning():
-            self.stopped.emit(self.task, self.startTime, self.endTime)
+            self.generate_event(self.stopped_event) # , self.task, self.startTime, self.endTime)
             self.canContinue = True
         self.setState(TimerState.STOPPED)
         self.updateUI()
 
     def pick(self):
         self.activity()
-        self.taskNeeded.emit()
+        self.generate_event(self.task_needed_event)
     
 def run():
     root = tk.Tk()
-    w = TaskTimer(root)
-    
+    t = TaskTimer(root)
+    t.setTimeToGo(30)
+    t.start()
     # def onTaskNeeded():
     #     w.setTask(Task("Some task"))
     # w.taskNeeded.connect(onTaskNeeded)

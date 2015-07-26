@@ -42,7 +42,7 @@ class Task(peewee.Model):
         s = []
         if self.issue_id:
             s.append("#%s" % self.issue_id)
-        s.append(self.project)
+        s.append(str(self.project))
         if self.name:
             s.append(self.name)
         return " | ".join(s)
