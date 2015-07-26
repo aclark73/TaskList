@@ -32,6 +32,8 @@ class TaskTimer(tk.Frame):
     need_task_event = '<<NeedTask>>'
     
     state = None
+    timeToGo = None
+    timeToGoVar = None
     
     breakPromptWidget = None
     breakDoneWidget = None
@@ -42,6 +44,7 @@ class TaskTimer(tk.Frame):
     
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
+        self.timeToGoVar = tk.StringVar()
         self.initUI()
         self.initTimers()
         self.updateUI()
@@ -51,7 +54,6 @@ class TaskTimer(tk.Frame):
         self.progressBar.length = minutes*60
     
     def initTimers(self):
-        self.timer = threading.Timer(.1, self.tick)
         self.setTimeToGo(SETTINGS.TASK_TIME)
         
         self.inactivityTimer = threading.Timer(SETTINGS.INACTIVE_TIME, self.inactiveUser)
@@ -69,7 +71,7 @@ class TaskTimer(tk.Frame):
     def initUI(self):
         self.taskLabel = tk.Label(self, text="task")
         self.taskLabel.pack()
-        self.timeLabel = tk.Label(self, text="time")
+        self.timeLabel = tk.Label(self, text="time", textvariable=self.timeToGoVar)
         self.timeLabel.pack()
         self.progressBar = ttk.Progressbar(self)
         self.progressBar.pack()
@@ -101,9 +103,7 @@ class TaskTimer(tk.Frame):
         self.taskLabel.text = "On break"
         self.setTimeToGo(minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
-        self.timer = threading.Timer(.1, self.tick)
-        self.timer.start()
-        self.updateUI()
+        self.tick()
     
     def extendBreak(self):
         self.startBreak(extended=True)
@@ -138,7 +138,7 @@ class TaskTimer(tk.Frame):
         else:
             display = "%d" % minutes
         display += ":%02d" % seconds
-        self.timeLabel.text = display
+        self.timeToGoVar.set(display)
 
     def tick(self):
         now = datetime.datetime.now()
@@ -176,14 +176,13 @@ class TaskTimer(tk.Frame):
         
     def inactiveUser(self):
         LOGGER.info("Inactivity!")
-        self.inactivityTimer.cancel()
         if self.isStopped():
             tkMessageBox.showinfo("Inactivity", "Still there?")
-            self.inactivityTimer.start()
     
     def activity(self):
         LOGGER.info("Activity!")
-        self.inactivityTimer.start()
+        self.after_cancel(self.inactivityTimer)
+        self.inactivityTimer = self.after(SETTINGS.INACTIVE_TIME, self.inactiveUser)
 
     def start(self, extended=False):
         self.activity()
@@ -198,13 +197,11 @@ class TaskTimer(tk.Frame):
         self.setState(TimerState.RUNNING)
         self.taskLabel.text = str(self.task)
         self.event_generate(self.started_event) # , self.task)
-        self.timer = threading.Timer(.1, self.tick)
-        self.timer.start()
-        self.updateUI()
+        self.tick()
     
     def stop(self):
         self.activity()
-        self.timer.cancel()
+        # self.timer.cancel()
         self.endTime = datetime.datetime.now()
         if self.isRunning():
             self.generate_event(self.stopped_event) # , self.task, self.startTime, self.endTime)
