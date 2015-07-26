@@ -67,13 +67,10 @@ class TaskTimer(tk.Frame):
             self.extendBreak()    
 
     def initUI(self):
-        self.list = ttk.Treeview(self)
-        self.list.pack()
-
-        self.timeLabel = tk.Label(self, text="time")
-        self.timeLabel.pack()
         self.taskLabel = tk.Label(self, text="task")
         self.taskLabel.pack()
+        self.timeLabel = tk.Label(self, text="time")
+        self.timeLabel.pack()
         self.progressBar = ttk.Progressbar(self)
         self.progressBar.pack()
 
@@ -104,6 +101,7 @@ class TaskTimer(tk.Frame):
         self.taskLabel.text = "On break"
         self.setTimeToGo(minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
+        self.timer = threading.Timer(.1, self.tick)
         self.timer.start()
         self.updateUI()
     
@@ -148,6 +146,8 @@ class TaskTimer(tk.Frame):
         self.showTimeToGo()
         if now > self.endTime:
             self.timeUp()
+        else:
+            self.after(100, self.tick)
     
     def setTask(self, task):
         if task == self.task:
@@ -198,6 +198,7 @@ class TaskTimer(tk.Frame):
         self.setState(TimerState.RUNNING)
         self.taskLabel.text = str(self.task)
         self.event_generate(self.started_event) # , self.task)
+        self.timer = threading.Timer(.1, self.tick)
         self.timer.start()
         self.updateUI()
     
@@ -218,6 +219,7 @@ class TaskTimer(tk.Frame):
 def run():
     root = tk.Tk()
     t = TaskTimer(root)
+    t.pack()
     t.setTimeToGo(30)
     t.start()
     # def onTaskNeeded():
