@@ -1,61 +1,58 @@
 #!/usr/bin/env pythonw
 
-from PyQt4 import QtGui, QtCore
+import Tkinter as tk
+import ttk
 import sys
 import requests
 import subprocess
-from timer_widget import TimerWidget
+from task_timer import TaskTimer
 from task_picker import TaskPicker
-from settings import AppSettings
 from logging import getLogger
 from models import TaskLog
 
-class TaskListSettings(AppSettings):
+class TaskListSettings(object):
     GEOMETRY = None
 SETTINGS = TaskListSettings()
     
 LOGGER = getLogger(__name__)
 
-class TaskList(QtGui.QMainWindow):
+class TaskList(tk.Frame):
 
     def __init__(self, *args, **kwargs):
-        super(TaskList, self).__init__(*args, **kwargs)
+        tk.Frame.__init__(self, *args, **kwargs)
         self.initUI()
         if SETTINGS.GEOMETRY:
             self.setGeometry(SETTINGS.GEOMETRY.toRect())
         
     def initUI(self):
-        self.timerWidget = TimerWidget()
-        self.timerWidget.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.pickerWidget = TaskPicker(self.timerWidget)
-        # self.pickerWidget.setModal(True)
-        
-        self.timerWidget.taskNeeded.connect(self.showPicker)
-        self.pickerWidget.picked.connect(self.onTaskPicked)
+        self.timerWidget = TaskTimer(self)
+        self.pickerWidget = TaskPicker(self)
 
-        self.timerWidget.stopped.connect(self.onTaskStopped)
+        f = tk.Frame(self)
+        self.startButton = ttk.Button(f, text='Start', command=self.timerWidget.start)
+        self.stopButton = ttk.Button(f, text='Stop', command=self.timerWidget.stop)
+        self.loadPicksButton = ttk.Button(f, text='Load Tasks', command=self.pickerWidget.fetchTasks)
+        self.startButton.pack(side=tk.LEFT)
+        self.stopButton.pack(side=tk.LEFT)
+        self.loadPicksButton.pack(side=tk.LEFT)
 
-        mainWidget = QtGui.QWidget()
+        self.timerWidget.pack()
+        self.pickerWidget.pack()
+        f.pack()
 
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(self.pickerWidget)
-        layout.addWidget(self.timerWidget)
-        mainWidget.setLayout(layout)
+        self.pickerWidget.bind(self.pickerWidget.picked_event, self.onTaskPicked)
+        self.timerWidget.bind(self.timerWidget.stopped_event, self.onTaskStopped)
 
-
-        self.setCentralWidget(mainWidget)
-        self.timerWidget.toolbar.setMovable(False)
-        self.addToolBar(QtCore.Qt.TopToolBarArea, self.timerWidget.toolbar)
         self.timerWidget.updateUI()
         
     def showPicker(self):
         # self.pickerWidget.show()
         pass
     
-    def onTaskPicked(self, task):
+    def onTaskPicked(self, task=None):
         self.timerWidget.setTask(task)
 
-    def onTaskStopped(self, task, startTime, endTime):
+    def onTaskStopped(self, task=None, startTime=None, endTime=None):
         log = TaskLog.log(task, startTime, endTime)
         print(log)
 
@@ -65,40 +62,10 @@ class TaskList(QtGui.QMainWindow):
 
 
 def run():
-    app = QtGui.QApplication(sys.argv)
-
-    menu = QtGui.QMenu('test')
-    font = menu.font()
-    icon = QtGui.QIcon(QtGui.QPixmap(10,20))
-    trayicon = QtGui.QSystemTrayIcon(icon)
-    trayicon.setContextMenu(menu)
-    trayicon.show()
-
-    print trayicon.geometry()
-
-    pm = QtGui.QPixmap(trayicon.geometry().size())
-    painter = QtGui.QPainter()
-    painter.begin(pm)
-    font.setPixelSize(pm.height())
-    painter.setFont(font)
-    
-    print painter.font()
-    # painter.fillRect(0,0,pm.width(),pm.height(),QtCore.Qt.red)
-    painter.drawText(0, pm.height(), "Test")
-    painter.end()
-    trayicon.setIcon(QtGui.QIcon(pm))
-
-    task_list = TaskList()
-    task_list.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-    task_list.menuBar().addMenu(menu)
-    
-#     trayicon.showMessage('test', 'test message')
-    #w = TaskList()
-#     w = QtGui.QWidget()
-    #w.show()
-    task_list.show()
-    
-    sys.exit(app.exec_())
+    root = tk.Tk()
+    t = TaskList(root)
+    t.pack()
+    root.mainloop()
 
 if __name__ == '__main__':
     run()

@@ -42,6 +42,9 @@ class BasePickerItem(object):
         raise NotImplementedError
     def get_iid(self):
         raise NotImplementedError
+    def __str__(self):
+        return str(self.get_task())
+    
 
 class ProjectItem(BasePickerItem):
     name = None
@@ -186,7 +189,7 @@ class TaskPicker(tk.Frame):
         # self.pickedTask = item.get_task()
 
     def onItemPicked(self, ev):
-        self.event_generate(self.picked_event)
+        self.event_generate(self.picked_event, task=self.pickedTask)
         # self.close()
 
 

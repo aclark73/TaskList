@@ -11,7 +11,7 @@ from models import Task, NO_TASK
 LOGGER = getLogger(__name__)
 
 class TimerSettings(object):
-    TASK_TIME = 30
+    TASK_TIME = 1
     TASK_EXTENSION = 10
     INACTIVE_TIME = 1
     BREAK_TIME = 1
@@ -44,14 +44,13 @@ class TaskTimer(tk.Frame):
     
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
-        self.timeToGoVar = tk.StringVar()
         self.initUI()
         self.initTimers()
         self.updateUI()
     
     def setTimeToGo(self, minutes):
         self.timeToGo = datetime.timedelta(minutes=minutes)
-        self.progressBar.length = minutes*60
+        self.progressBar['maximum'] = minutes*60
     
     def initTimers(self):
         self.setTimeToGo(SETTINGS.TASK_TIME)
@@ -69,11 +68,14 @@ class TaskTimer(tk.Frame):
             self.extendBreak()    
 
     def initUI(self):
-        self.taskLabel = tk.Label(self, text="task")
+        self.taskLabelVar = tk.StringVar()
+        self.taskLabel = tk.Label(self, textvariable=self.taskLabelVar)
         self.taskLabel.pack()
-        self.timeLabel = tk.Label(self, text="time", textvariable=self.timeToGoVar)
+        self.timeLabelVar = tk.StringVar()
+        self.timeLabel = tk.Label(self, textvariable=self.timeLabelVar)
         self.timeLabel.pack()
-        self.progressBar = ttk.Progressbar(self)
+        self.progressBarVar = tk.IntVar()
+        self.progressBar = ttk.Progressbar(self, variable=self.progressBarVar)
         self.progressBar.pack()
 
         #self.displayMessage = QtGui.QLabel("", self)
@@ -129,7 +131,7 @@ class TaskTimer(tk.Frame):
         # Round up number of seconds
         if self.timeToGo.microseconds:
             seconds += 1
-        self.progressBar.value = seconds
+        self.progressBarVar.set(seconds)
         hours = seconds / 3600
         minutes = (seconds / 60) % 60
         seconds = seconds % 60
@@ -138,7 +140,7 @@ class TaskTimer(tk.Frame):
         else:
             display = "%d" % minutes
         display += ":%02d" % seconds
-        self.timeToGoVar.set(display)
+        self.timeLabelVar.set(display)
 
     def tick(self):
         now = datetime.datetime.now()
@@ -158,7 +160,7 @@ class TaskTimer(tk.Frame):
             if self.isRunning():
                 self.stop()
             self.task = task
-            self.taskLabel.setText(str(self.task))
+            self.taskLabelVar.set(str(self.task))
             self.canContinue = False
             self.updateUI()
             self.start()
@@ -195,8 +197,8 @@ class TaskTimer(tk.Frame):
             self.setTimeToGo(SETTINGS.TASK_TIME)
         self.endTime = self.startTime + self.timeToGo
         self.setState(TimerState.RUNNING)
-        self.taskLabel.text = str(self.task)
-        self.event_generate(self.started_event) # , self.task)
+        self.taskLabelVar.set(str(self.task))
+        self.event_generate(self.started_event, task=self.task)
         self.tick()
     
     def stop(self):
@@ -204,7 +206,9 @@ class TaskTimer(tk.Frame):
         # self.timer.cancel()
         self.endTime = datetime.datetime.now()
         if self.isRunning():
-            self.generate_event(self.stopped_event) # , self.task, self.startTime, self.endTime)
+            self.event_generate(
+                self.stopped_event, task=self.task,
+                startTime=self.startTime, endTime=self.endTime)
             self.canContinue = True
         self.setState(TimerState.STOPPED)
         self.updateUI()
