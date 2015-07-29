@@ -4,6 +4,7 @@ import tkMessageBox
 import sys
 import datetime
 import threading
+from event_hook import EventHook
 from logging import getLogger
 # from settings import AppSettings
 from models import Task, NO_TASK
@@ -27,9 +28,8 @@ class TimerState():
 
 class TaskTimer(tk.Frame):
     
-    started_event = '<<Started>>' # (Task)
-    stopped_event = '<<Stopped>>' # (Task, datetime.datetime, datetime.datetime)
-    need_task_event = '<<NeedTask>>'
+    started_event = EventHook() # (Task)
+    stopped_event = EventHook() # (Task, datetime.datetime, datetime.datetime)
     
     state = None
     timeToGo = None
@@ -198,7 +198,7 @@ class TaskTimer(tk.Frame):
         self.endTime = self.startTime + self.timeToGo
         self.setState(TimerState.RUNNING)
         self.taskLabelVar.set(str(self.task))
-        self.event_generate(self.started_event, task=self.task)
+        self.started_event.fire(self.task)
         self.tick()
     
     def stop(self):
@@ -206,17 +206,11 @@ class TaskTimer(tk.Frame):
         # self.timer.cancel()
         self.endTime = datetime.datetime.now()
         if self.isRunning():
-            self.event_generate(
-                self.stopped_event, task=self.task,
-                startTime=self.startTime, endTime=self.endTime)
+            self.stopped_event.fire(self.task, self.startTime, self.endTime)
             self.canContinue = True
         self.setState(TimerState.STOPPED)
         self.updateUI()
 
-    def pick(self):
-        self.activity()
-        self.generate_event(self.task_needed_event)
-    
 def run():
     root = tk.Tk()
     t = TaskTimer(root)

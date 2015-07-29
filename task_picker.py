@@ -8,6 +8,7 @@ import json
 from models import Task, NO_TASK
 # from settings import AppSettings
 from socket import gethostname
+from event_hook import EventHook
 
 class TaskPickerSettings(object):
     if 'honu' in gethostname().lower():
@@ -116,7 +117,7 @@ class RedmineIssueItem(IssueItem):
 
 class TaskPicker(tk.Frame):
 
-    picked_event = '<<picked>>'
+    picked_event = EventHook()
 
     pickedTask = NO_TASK
     savedGeometry = None
@@ -144,7 +145,7 @@ class TaskPicker(tk.Frame):
 
     def fetchTasks(self):
         if self.iids:
-            self.list.delete(self.iids.keys())
+            self.list.delete(*(self.iids.keys()))
         self.projects = {}
         self.iids = {}
         self.fetchLocalTasks()
@@ -189,7 +190,7 @@ class TaskPicker(tk.Frame):
         # self.pickedTask = item.get_task()
 
     def onItemPicked(self, ev):
-        self.event_generate(self.picked_event, task=self.pickedTask)
+        self.picked_event.fire(self.pickedTask)
         # self.close()
 
 

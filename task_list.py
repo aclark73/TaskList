@@ -40,8 +40,8 @@ class TaskList(tk.Frame):
         self.pickerWidget.pack()
         f.pack()
 
-        self.pickerWidget.bind(self.pickerWidget.picked_event, self.onTaskPicked)
-        self.timerWidget.bind(self.timerWidget.stopped_event, self.onTaskStopped)
+        self.pickerWidget.picked_event.add(self.onTaskPicked)
+        self.timerWidget.stopped_event.add(self.onTaskStopped)
 
         self.timerWidget.updateUI()
         
