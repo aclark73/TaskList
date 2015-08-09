@@ -47,6 +47,8 @@ class Task(peewee.Model):
             s.append(self.name)
         return " | ".join(s)
 
+Task.create_table(True)
+
 NO_TASK = Task(name="None")
 
 REDMINE_TASK_URL = 'http://dmscode.iris.washington.edu/time_entries.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837'
@@ -76,17 +78,7 @@ class TaskLog(peewee.Model):
     def query(cls):
         return session.query(TaskLog)
 
-_verified_db = False
-def verify_db():
-    if not _verified_db:
-        try:
-            for cls in (Task, TaskLog,):
-                cls.query().count()
-        except:
-            Base.metadata.create_all(engine)
-
-def run():
-    verify_db()
+TaskLog.create_table(True)
 
 def upload_redmine():
     logs = peewee.SelectQuery(TaskLog).where(TaskLog.uploaded != True).join(Task)

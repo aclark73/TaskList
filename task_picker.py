@@ -186,7 +186,7 @@ class TaskPicker(tk.Frame):
 
 
     def onItemSelected(self, ev):
-        self.pickedTask = self.iids[self.list.focus()]
+        self.pickedTask = self.iids[self.list.focus()].task
         # self.pickedTask = item.get_task()
 
     def onItemPicked(self, ev):
