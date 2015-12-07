@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="7ed24137-0083-9640-a2ba-ac0112941126" kpf_version="5" name="tasklist.komodoproject">
+<preference-set idref="7ed24137-0083-9640-a2ba-ac0112941126" id="project" preftype="project">
+  <long id="prefs_version">1</long>
+</preference-set>
 </project>

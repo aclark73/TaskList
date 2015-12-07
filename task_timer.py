@@ -42,11 +42,13 @@ class TaskTimer(tk.Frame):
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
-        self.initUI()
-        self.initTimers()
-        self.updateUI()
+    def __init__(self, timeLabel, taskLabel, progressBar):
+        self.timeLabel = timeLabel
+        self.taskLabel = taskLabel
+        self.progressBar = progressBar
+        # self.initUI()
+        # self.initTimers()
+        # self.updateUI()
     
     def setTimeToGo(self, minutes):
         self.timeToGo = datetime.timedelta(minutes=minutes)
@@ -68,15 +70,16 @@ class TaskTimer(tk.Frame):
             self.extendBreak()    
 
     def initUI(self):
-        self.taskLabelVar = tk.StringVar()
-        self.taskLabel = tk.Label(self, textvariable=self.taskLabelVar)
-        self.taskLabel.pack()
-        self.timeLabelVar = tk.StringVar()
-        self.timeLabel = tk.Label(self, textvariable=self.timeLabelVar)
-        self.timeLabel.pack()
-        self.progressBarVar = tk.IntVar()
-        self.progressBar = ttk.Progressbar(self, variable=self.progressBarVar)
-        self.progressBar.pack()
+        pass
+        # self.taskLabelVar = tk.StringVar()
+        # self.taskLabel = tk.Label(self, textvariable=self.taskLabelVar)
+        # self.taskLabel.pack()
+        # self.timeLabelVar = tk.StringVar()
+        # self.timeLabel = tk.Label(self, textvariable=self.timeLabelVar)
+        # self.timeLabel.pack()
+        # self.progressBarVar = tk.IntVar()
+        # self.progressBar = ttk.Progressbar(self, variable=self.progressBarVar)
+        # self.progressBar.pack()
 
         #self.displayMessage = QtGui.QLabel("", self)
         #self.displayMessage.hide()

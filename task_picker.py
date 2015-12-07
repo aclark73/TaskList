@@ -115,7 +115,7 @@ class RedmineIssueItem(IssueItem):
         super(RedmineIssueItem, self).init()
 
 
-class TaskPicker(tk.Frame):
+class TaskPicker():
 
     picked_event = EventHook()
 
@@ -125,23 +125,22 @@ class TaskPicker(tk.Frame):
     iids = None
     list = None
 
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
+    def __init__(self, treeWidget):
         self.initWidgets()
 
     def initWidgets(self):
 #         main_widget = QtGui.QWidget(self)
 #         self.map = BasemapWidget(main_widget)
 #         self.waveforms = MPLWidget(main_widget)
-        self.list = ttk.Treeview(self)
-        self.list.pack()
-        self.list.heading('#0', text='Task')
+        # self.list = ttk.Treeview(self)
+        # self.list.pack()
+        # self.list.heading('#0', text='Task')
         # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
-        # self.list.setHeaderLabels([ 'Id', 'Title' ])
-        self.list.bind('<<TreeviewSelect>>', self.onItemSelected)
-        self.list.bind('<Double-Button>', self.onItemPicked)
-        #self.list.itemClicked.connect(self.onItemClick)
-        #self.list.doubleClicked.connect(self.onPicked)
+        self.treeWidget.setHeaderLabels([ 'Id', 'Title' ])
+        #self.list.bind('<<TreeviewSelect>>', self.onItemSelected)
+        #self.list.bind('<Double-Button>', self.onItemPicked)
+        self.treeWidget.itemClicked.connect(self.onItemClick)
+        self.treeWidget.doubleClicked.connect(self.onPicked)
 
     def fetchTasks(self):
         if self.iids:

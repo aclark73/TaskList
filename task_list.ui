@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>539</width>
+    <width>333</width>
     <height>422</height>
    </rect>
   </property>
@@ -131,6 +131,9 @@ color: rgb(0, 128, 64);padding: 18px;</string>
           </property>
           <property name="checkable">
            <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
           </property>
           <property name="autoExclusive">
            <bool>true</bool>
