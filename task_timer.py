@@ -22,7 +22,7 @@ class TimerState():
     ON_BREAK = 2
     
 
-class TaskTimer():
+class TaskTimer(QtCore.QObject):
     
     started = QtCore.pyqtSignal(Task)
     stopped = QtCore.pyqtSignal(Task, datetime.datetime, datetime.datetime)
@@ -37,8 +37,8 @@ class TaskTimer():
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, app, timeLabel, taskLabel, progressBar, *args, **kwargs):
-        super(TaskTimer, self).__init__(*args, **kwargs)
+    def __init__(self, app, timeLabel, taskLabel, progressBar):
+        super(TaskTimer, self).__init__()
         self.app = app
         self.initUI(timeLabel, taskLabel, progressBar)
         self.initTimers()

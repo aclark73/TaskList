@@ -119,7 +119,7 @@ class RedmineIssueItem(IssueItem):
         super(RedmineIssueItem, self).init()
 
 
-class TaskPicker():
+class TaskPicker(QtCore.QObject):
 
     picked_event = QtCore.pyqtSignal(Task)
 
