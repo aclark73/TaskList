@@ -83,11 +83,12 @@ TaskLog.create_table(True)
 class RedmineUploader():
 
     timer = None
+    interval = 1000*60*60*8 # 8 hours
     
     def timer(self):
         if not self.timer:
             self.timer = QtCore.QTimer()
-            self.timer.setInterval(100)
+            self.timer.setInterval(interval)
             self.timer.timeout.connect(self.upload)
         if not self.timer.isActive():
             self.timer.start()
