@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>333</width>
-    <height>422</height>
+    <width>470</width>
+    <height>490</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,7 +28,7 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <property name="spacing">
-     <number>0</number>
+     <number>12</number>
     </property>
     <item>
      <widget class="QFrame" name="frame">
@@ -40,18 +40,6 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
-        <number>6</number>
-       </property>
-       <property name="leftMargin">
-        <number>6</number>
-       </property>
-       <property name="topMargin">
-        <number>6</number>
-       </property>
-       <property name="rightMargin">
-        <number>6</number>
-       </property>
-       <property name="bottomMargin">
         <number>6</number>
        </property>
        <item>
@@ -79,13 +67,62 @@
         </widget>
        </item>
        <item>
-        <widget class="QFrame" name="horizonal_1">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <widget class="QPushButton" name="refreshButton">
+         <property name="text">
+          <string>Refresh</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="verticalFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>12</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>12</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="taskTimerWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0">
           <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="sizeConstraint">
-           <enum>QLayout::SetFixedSize</enum>
+           <number>4</number>
           </property>
           <property name="leftMargin">
            <number>0</number>
@@ -100,174 +137,144 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QFrame" name="vertical_1">
-            <layout class="QVBoxLayout" name="verticalLayout_4">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="sizeConstraint">
-              <enum>QLayout::SetFixedSize</enum>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QPushButton" name="workButton">
-               <property name="styleSheet">
-                <string notr="true">font: 24pt;
-color: rgb(0, 128, 64);padding: 18px;</string>
-               </property>
-               <property name="text">
-                <string>Work</string>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-               <property name="checked">
-                <bool>false</bool>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="breakButton">
-               <property name="styleSheet">
-                <string notr="true">font: 24pt &quot;Helvetica&quot;;
-color: rgb(128, 0, 0); padding: 18px;
-</string>
-               </property>
-               <property name="text">
-                <string>Break</string>
-               </property>
-               <property name="checkable">
-                <bool>true</bool>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="taskTimerWidget">
+           <widget class="QLabel" name="taskLabel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
+            <property name="text">
+             <string>Task</string>
             </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox">
+            <property name="editable">
+             <bool>true</bool>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,0">
-             <property name="spacing">
-              <number>4</number>
+            <property name="insertPolicy">
+             <enum>QComboBox::InsertAtTop</enum>
+            </property>
+            <item>
+             <property name="text">
+              <string>New Item</string>
              </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QPushButton" name="refreshButton">
-               <property name="text">
-                <string>Refresh</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>4</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="taskLabel">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Task</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="comboBox">
-               <property name="editable">
-                <bool>true</bool>
-               </property>
-               <property name="insertPolicy">
-                <enum>QComboBox::InsertAtTop</enum>
-               </property>
-               <item>
-                <property name="text">
-                 <string>New Item</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="timeLabel">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>24</pointsize>
-                </font>
-               </property>
-               <property name="text">
-                <string>Time</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QProgressBar" name="progressBar">
-               <property name="value">
-                <number>24</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="timeLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>24</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Time</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="value">
+             <number>24</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_3">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="workButton">
+            <property name="font">
+             <font>
+              <family>.Helvetica Neue DeskInterface</family>
+              <pointsize>24</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font: 24pt;
+color: rgb(0, 128, 64);padding: 18px;</string>
+            </property>
+            <property name="text">
+             <string>Work</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="breakButton">
+            <property name="font">
+             <font>
+              <family>.Helvetica Neue DeskInterface</family>
+              <pointsize>24</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: rgb(128, 0, 0); padding: 18px;
+</string>
+            </property>
+            <property name="text">
+             <string>Break</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+            <property name="autoDefault">
+             <bool>false</bool>
+            </property>
+            <property name="default">
+             <bool>false</bool>
+            </property>
+            <property name="flat">
+             <bool>false</bool>
+            </property>
            </widget>
           </item>
          </layout>

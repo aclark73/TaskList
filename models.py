@@ -1,9 +1,11 @@
+from PyQt4 import QtCore
 from socket import gethostname
 import os
 import json
 import requests
 import sqlite3
 import peewee
+import datetime
 
 ROOT = '/tmp/'
 DB_FILE = ROOT + '.tasklist.db'
@@ -85,10 +87,10 @@ class RedmineUploader():
     timer = None
     interval = 1000*60*60*8 # 8 hours
     
-    def timer(self):
+    def start(self):
         if not self.timer:
             self.timer = QtCore.QTimer()
-            self.timer.setInterval(interval)
+            self.timer.setInterval(self.interval)
             self.timer.timeout.connect(self.upload)
         if not self.timer.isActive():
             self.timer.start()
@@ -98,7 +100,10 @@ class RedmineUploader():
             self.timer.stop()
     
     def upload(self):
-        logs = peewee.SelectQuery(TaskLog).where(TaskLog.uploaded != True).join(Task)
+        logs = peewee.SelectQuery(TaskLog).where(
+            TaskLog.uploaded != True,
+            TaskLog.end_time < datetime.date.today()
+            ).join(Task)
         hours_per_issue_per_day = {}
         for log in logs:
             issue_id = log.task.issue_id
@@ -124,7 +129,9 @@ class RedmineUploader():
             log.uploaded = True
             log.save()
 
+UPLOADER = RedmineUploader()
+
 if __name__ == '__main__':
     # run()
-    upload_redmine()
+    UPLOADER.upload()
 
