@@ -80,32 +80,48 @@ class TaskLog(peewee.Model):
 
 TaskLog.create_table(True)
 
-def upload_redmine():
-    logs = peewee.SelectQuery(TaskLog).where(TaskLog.uploaded != True).join(Task)
-    hours_per_issue_per_day = {}
-    for log in logs:
-        issue_id = log.task.issue_id
-        if issue_id:
-            time_spent = log.end_time - log.start_time
-            day = log.start_time.date().isoformat()
-            hours_per_issue_per_day.setdefault(day, {}).setdefault(issue_id, 0)
-            hours_per_issue_per_day[day][issue_id] += float(time_spent.seconds) / 3600
-    
-    for day, issues in hours_per_issue_per_day.iteritems():
-        for issue_id, hours in issues.iteritems():
-            log_dict = dict(
-                time_entry=dict(
-                    issue_id=int(issue_id),
-                    spent_on=day,
-                    hours=hours
-                )
-            )
-            requests.post(REDMINE_TASK_URL, json=log_dict)
-            print json.dumps(log_dict)
+class RedmineUploader():
 
-    for log in logs:
-        log.uploaded = True
-        log.save()
+    timer = None
+    
+    def timer(self):
+        if not self.timer:
+            self.timer = QtCore.QTimer()
+            self.timer.setInterval(100)
+            self.timer.timeout.connect(self.upload)
+        if not self.timer.isActive():
+            self.timer.start()
+    
+    def stop(self):
+        if self.timer and self.timer.isActive():
+            self.timer.stop()
+    
+    def upload(self):
+        logs = peewee.SelectQuery(TaskLog).where(TaskLog.uploaded != True).join(Task)
+        hours_per_issue_per_day = {}
+        for log in logs:
+            issue_id = log.task.issue_id
+            if issue_id:
+                time_spent = log.end_time - log.start_time
+                day = log.start_time.date().isoformat()
+                hours_per_issue_per_day.setdefault(day, {}).setdefault(issue_id, 0)
+                hours_per_issue_per_day[day][issue_id] += float(time_spent.seconds) / 3600
+        
+        for day, issues in hours_per_issue_per_day.iteritems():
+            for issue_id, hours in issues.iteritems():
+                log_dict = dict(
+                    time_entry=dict(
+                        issue_id=int(issue_id),
+                        spent_on=day,
+                        hours=hours
+                    )
+                )
+                requests.post(REDMINE_TASK_URL, json=log_dict)
+                print json.dumps(log_dict)
+    
+        for log in logs:
+            log.uploaded = True
+            log.save()
 
 if __name__ == '__main__':
     # run()
