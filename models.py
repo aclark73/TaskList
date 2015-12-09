@@ -58,7 +58,7 @@ class TaskLog(peewee.Model):
     task = peewee.ForeignKeyField(Task)
     start_time = peewee.DateTimeField()
     end_time = peewee.DateTimeField()
-    uploaded = peewee.BooleanField()
+    uploaded = peewee.BooleanField(default=False)
     
     class Meta:
         database = db

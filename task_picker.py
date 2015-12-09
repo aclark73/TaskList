@@ -1,14 +1,12 @@
 #!/usr/bin/env pythonw
 
-import Tkinter as tk
-import ttk
+from PyQt4 import QtGui, QtCore
 import sys
 import requests
 import json
 from models import Task, NO_TASK
 # from settings import AppSettings
 from socket import gethostname
-from event_hook import EventHook
 
 class TaskPickerSettings(object):
     if 'honu' in gethostname().lower():
@@ -22,16 +20,19 @@ class TaskPickerSettings(object):
 
 SETTINGS = TaskPickerSettings()
 
-class BasePickerItem(object):
+class BasePickerItem(QtGui.QTreeWidgetItem):
+    itemType = QtGui.QTreeWidgetItem.UserType
     source = ''
     task = None
     def __init__(self, *args, **kwargs):
         for k in kwargs.keys():
             if hasattr(self, k) and getattr(self, k) is None:
                 setattr(self, k, kwargs.pop(k))
+        kwargs['type'] = self.itemType
+        super(BasePickerItem, self).__init__(*args, **kwargs)
         self.init()
     def init(self):
-        pass
+        self.setText(0, self.get_label())
     def get_task(self):
         if not self.task:
             kwargs = self.get_task_kwargs()
@@ -48,6 +49,7 @@ class BasePickerItem(object):
     
 
 class ProjectItem(BasePickerItem):
+    itemType = BasePickerItem.itemType + 1
     name = None
     def get_task_kwargs(self):
         return dict(
@@ -61,6 +63,7 @@ class ProjectItem(BasePickerItem):
         return "P.%s.%s" % (self.source, self.name)
 
 class IssueItem(BasePickerItem):
+    itemType = ProjectItem.itemType + 1
     title = None
     project = None
     issue_id = None
@@ -69,6 +72,7 @@ class IssueItem(BasePickerItem):
     def init(self):
         assert(self.title)
         assert(self.project)
+        super(IssueItem, self).init()
 
     def get_label(self):
         if self.issue_id:
@@ -117,7 +121,7 @@ class RedmineIssueItem(IssueItem):
 
 class TaskPicker():
 
-    picked_event = EventHook()
+    picked_event = QtCore.pyqtSignal(Task)
 
     pickedTask = NO_TASK
     savedGeometry = None
@@ -125,7 +129,9 @@ class TaskPicker():
     iids = None
     list = None
 
-    def __init__(self, treeWidget):
+    def __init__(self, app, treeWidget):
+        self.app = app
+        self.treeWidget = treeWidget
         self.initWidgets()
 
     def initWidgets(self):
@@ -136,15 +142,14 @@ class TaskPicker():
         # self.list.pack()
         # self.list.heading('#0', text='Task')
         # self.list.setHeaderItem(QtGui.QTreeWidgetItem([ 'Id', 'Project', 'Title' ]))
-        self.treeWidget.setHeaderLabels([ 'Id', 'Title' ])
+        # self.treeWidget.setHeaderLabels([ 'Id', 'Title' ])
         #self.list.bind('<<TreeviewSelect>>', self.onItemSelected)
         #self.list.bind('<Double-Button>', self.onItemPicked)
         self.treeWidget.itemClicked.connect(self.onItemClick)
-        self.treeWidget.doubleClicked.connect(self.onPicked)
+        # self.treeWidget.doubleClicked.connect(self.onPicked)
 
     def fetchTasks(self):
-        if self.iids:
-            self.list.delete(*(self.iids.keys()))
+        self.treeWidget.clear()
         self.projects = {}
         self.iids = {}
         self.fetchLocalTasks()
@@ -153,7 +158,8 @@ class TaskPicker():
     def addProject(self, project):
         self.projects[project.name] = project
         self.iids[project.get_iid()] = project
-        self.list.insert('', 'end', iid=project.get_iid(), text=project.get_label())
+        self.treeWidget.addTopLevelItem(project)
+        # self.list.insert('', 'end', iid=project.get_iid(), text=project.get_label())
         return project
 
     def addItem(self, item):
@@ -161,7 +167,8 @@ class TaskPicker():
         if not project:
             project = self.addProject(ProjectItem(name=item.project))
         self.iids[item.get_iid()] = item
-        self.list.insert(project.get_iid(), 'end', iid=item.get_iid(), text=item.get_label())
+        project.addChild(item)
+        # self.list.insert(project.get_iid(), 'end', iid=item.get_iid(), text=item.get_label())
 
     def fetchLocalTasks(self):
         tasks = Task.select().where(Task.source==LocalIssueItem.source)
@@ -184,11 +191,11 @@ class TaskPicker():
             self.addItem(RedmineIssueItem(issue=issue))
 
 
-    def onItemSelected(self, ev):
-        self.pickedTask = self.iids[self.list.focus()].task
-        # self.pickedTask = item.get_task()
+    def onItemClick(self, item):
+        # self.pickedTask = self.iids[self.list.focus()].task
+        self.pickedTask = item.get_task()
 
-    def onItemPicked(self, ev):
+    def onItemPicked(self, item):
         self.picked_event.fire(self.pickedTask)
         # self.close()
 
