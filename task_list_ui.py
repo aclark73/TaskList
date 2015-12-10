@@ -2,7 +2,8 @@
 
 # Form implementation generated from reading ui file 'task_list.ui'
 #
-# Created by: PyQt4 UI code generator 4.11.4
+# Created: Wed Dec  9 16:42:38 2015
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -25,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(470, 490)
+        MainWindow.resize(485, 500)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -73,8 +74,8 @@ class Ui_MainWindow(object):
         self.verticalFrame.setFrameShadow(QtGui.QFrame.Raised)
         self.verticalFrame.setObjectName(_fromUtf8("verticalFrame"))
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.verticalFrame)
-        self.verticalLayout_4.setMargin(12)
         self.verticalLayout_4.setSpacing(0)
+        self.verticalLayout_4.setMargin(12)
         self.verticalLayout_4.setObjectName(_fromUtf8("verticalLayout_4"))
         self.taskTimerWidget = QtGui.QFrame(self.verticalFrame)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -86,8 +87,8 @@ class Ui_MainWindow(object):
         self.taskTimerWidget.setFrameShadow(QtGui.QFrame.Raised)
         self.taskTimerWidget.setObjectName(_fromUtf8("taskTimerWidget"))
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.taskTimerWidget)
-        self.verticalLayout_3.setMargin(0)
         self.verticalLayout_3.setSpacing(4)
+        self.verticalLayout_3.setMargin(0)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.taskLabel = QtGui.QLabel(self.taskTimerWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -98,10 +99,9 @@ class Ui_MainWindow(object):
         self.taskLabel.setObjectName(_fromUtf8("taskLabel"))
         self.verticalLayout_3.addWidget(self.taskLabel)
         self.comboBox = QtGui.QComboBox(self.taskTimerWidget)
-        self.comboBox.setEditable(True)
+        self.comboBox.setEditable(False)
         self.comboBox.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
         self.comboBox.setObjectName(_fromUtf8("comboBox"))
-        self.comboBox.addItem(_fromUtf8(""))
         self.verticalLayout_3.addWidget(self.comboBox)
         self.timeLabel = QtGui.QLabel(self.taskTimerWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -122,9 +122,9 @@ class Ui_MainWindow(object):
         self.frame_3 = QtGui.QFrame(self.verticalFrame)
         self.frame_3.setObjectName(_fromUtf8("frame_3"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.frame_3)
+        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setSizeConstraint(QtGui.QLayout.SetDefaultConstraint)
         self.horizontalLayout.setMargin(0)
-        self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.workButton = QtGui.QPushButton(self.frame_3)
         font = QtGui.QFont()
@@ -153,6 +153,9 @@ class Ui_MainWindow(object):
 ""))
         self.breakButton.setCheckable(True)
         self.breakButton.setAutoExclusive(True)
+        self.breakButton.setAutoDefault(False)
+        self.breakButton.setDefault(False)
+        self.breakButton.setFlat(False)
         self.breakButton.setObjectName(_fromUtf8("breakButton"))
         self.horizontalLayout.addWidget(self.breakButton)
         self.verticalLayout_4.addWidget(self.frame_3)
@@ -162,14 +165,27 @@ class Ui_MainWindow(object):
         self.statusBar.setSizeGripEnabled(True)
         self.statusBar.setObjectName(_fromUtf8("statusBar"))
         MainWindow.setStatusBar(self.statusBar)
-        self.actionGo = QtGui.QAction(MainWindow)
-        self.actionGo.setObjectName(_fromUtf8("actionGo"))
+        self.menuBar = QtGui.QMenuBar(MainWindow)
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 485, 22))
+        self.menuBar.setObjectName(_fromUtf8("menuBar"))
+        self.menuAction = QtGui.QMenu(self.menuBar)
+        self.menuAction.setObjectName(_fromUtf8("menuAction"))
+        MainWindow.setMenuBar(self.menuBar)
+        self.actionWork = QtGui.QAction(MainWindow)
+        self.actionWork.setObjectName(_fromUtf8("actionWork"))
         self.actionBreak = QtGui.QAction(MainWindow)
         self.actionBreak.setObjectName(_fromUtf8("actionBreak"))
+        self.menuAction.addAction(self.actionWork)
+        self.menuAction.addAction(self.actionBreak)
+        self.menuBar.addAction(self.menuAction.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QObject.connect(self.refreshButton, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.refreshTaskPicker)
-        QtCore.QObject.connect(self.treeWidget, QtCore.SIGNAL(_fromUtf8("itemDoubleClicked(QTreeWidgetItem*,int)")), MainWindow.taskPicked)
+        QtCore.QObject.connect(self.treeWidget, QtCore.SIGNAL(_fromUtf8("itemDoubleClicked(QTreeWidgetItem*,int)")), MainWindow.go)
+        QtCore.QObject.connect(self.workButton, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.go)
+        QtCore.QObject.connect(self.breakButton, QtCore.SIGNAL(_fromUtf8("clicked()")), MainWindow.pause)
+        QtCore.QObject.connect(self.actionWork, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.go)
+        QtCore.QObject.connect(self.actionBreak, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.pause)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -177,10 +193,10 @@ class Ui_MainWindow(object):
         self.treeWidget.headerItem().setText(0, _translate("MainWindow", "Task", None))
         self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
         self.taskLabel.setText(_translate("MainWindow", "Task", None))
-        self.comboBox.setItemText(0, _translate("MainWindow", "New Item", None))
         self.timeLabel.setText(_translate("MainWindow", "Time", None))
         self.workButton.setText(_translate("MainWindow", "Work", None))
         self.breakButton.setText(_translate("MainWindow", "Break", None))
-        self.actionGo.setText(_translate("MainWindow", "Go", None))
+        self.menuAction.setTitle(_translate("MainWindow", "Action", None))
+        self.actionWork.setText(_translate("MainWindow", "Work", None))
         self.actionBreak.setText(_translate("MainWindow", "Break", None))
 

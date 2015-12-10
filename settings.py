@@ -1,4 +1,7 @@
 from PyQt4 import QtCore
+from logging import getLogger
+
+LOGGER = getLogger(__name__)
 
 QtCore.QCoreApplication.setOrganizationName('Adam')
 QtCore.QCoreApplication.setOrganizationDomain('dagobah.com')
@@ -9,11 +12,11 @@ class Settings:
         self.prefix = prefix
     def __enter__(self):
         self.settings = QtCore.QSettings()
-        print "Looking in %s" % self.prefix
+        LOGGER.info("Looking in %s" % self.prefix)
         self.settings.beginGroup(self.prefix)
         return self.settings
     def __exit__(self, *args, **kwargs):
-        print "endGroup"
+        LOGGER.info("endGroup")
         self.settings.endGroup()
 
 class AppSettings(object):
@@ -25,7 +28,7 @@ class AppSettings(object):
     
     def __getattribute__(self, name):
         if name.isupper():
-            print "get %s/%s" % (self.prefix, name)
+            LOGGER.info("get %s/%s" % (self.prefix, name))
             with Settings(self.prefix) as settings:
                 if settings.contains(name):
                     return settings.value(name)
@@ -33,7 +36,7 @@ class AppSettings(object):
     
     def __setattr__(self, name, value):
         if name.isupper():
-            print "set %s/%s" % (self.prefix, name)
+            LOGGER.info("set %s/%s" % (self.prefix, name))
             with Settings(self.prefix) as settings:
                 settings.setValue(name, value)
         object.__setattr__(self, name, value)

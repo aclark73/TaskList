@@ -1,11 +1,14 @@
 from PyQt4 import QtCore
 from socket import gethostname
+from logging import getLogger
 import os
 import json
 import requests
 import sqlite3
 import peewee
 import datetime
+
+LOGGER = getLogger(__name__)
 
 ROOT = '/tmp/'
 DB_FILE = ROOT + '.tasklist.db'
@@ -35,6 +38,12 @@ class Task(peewee.Model):
 
     class Meta:
         database = db
+
+    def get_uid(self):
+        if self.name:
+            return "I.%s.%s.%s.%s" % (self.source, self.project, self.issue_id, self.name)
+        else:
+            return "P.%s.%s" % (self.source, self.project)
 
     def __repr__(self):
         return "<Task(project='%s', name='%s')>" % (
@@ -88,6 +97,7 @@ class RedmineUploader():
     interval = 1000*60*60*8 # 8 hours
     
     def start(self):
+        self.upload()
         if not self.timer:
             self.timer = QtCore.QTimer()
             self.timer.setInterval(self.interval)
@@ -104,6 +114,7 @@ class RedmineUploader():
             TaskLog.uploaded != True,
             TaskLog.end_time < datetime.date.today()
             ).join(Task)
+        LOGGER.info("Found %d entries to upload" % len(logs))
         hours_per_issue_per_day = {}
         for log in logs:
             issue_id = log.task.issue_id

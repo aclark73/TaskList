@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>470</width>
-    <height>490</height>
+    <width>485</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -152,16 +152,11 @@
           <item>
            <widget class="QComboBox" name="comboBox">
             <property name="editable">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="insertPolicy">
              <enum>QComboBox::InsertAtTop</enum>
             </property>
-            <item>
-             <property name="text">
-              <string>New Item</string>
-             </property>
-            </item>
            </widget>
           </item>
           <item>
@@ -290,9 +285,27 @@ color: rgb(0, 128, 64);padding: 18px;</string>
     <bool>true</bool>
    </property>
   </widget>
-  <action name="actionGo">
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>485</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAction">
+    <property name="title">
+     <string>Action</string>
+    </property>
+    <addaction name="actionWork"/>
+    <addaction name="actionBreak"/>
+   </widget>
+   <addaction name="menuAction"/>
+  </widget>
+  <action name="actionWork">
    <property name="text">
-    <string>Go</string>
+    <string>Work</string>
    </property>
   </action>
   <action name="actionBreak">
@@ -310,8 +323,8 @@ color: rgb(0, 128, 64);padding: 18px;</string>
    <slot>refreshTaskPicker()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>446</x>
-     <y>116</y>
+     <x>450</x>
+     <y>248</y>
     </hint>
     <hint type="destinationlabel">
      <x>274</x>
@@ -323,15 +336,79 @@ color: rgb(0, 128, 64);padding: 18px;</string>
    <sender>treeWidget</sender>
    <signal>itemDoubleClicked(QTreeWidgetItem*,int)</signal>
    <receiver>MainWindow</receiver>
-   <slot>taskPicked(QTreeWidgetItem*,int)</slot>
+   <slot>go()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>274</x>
-     <y>287</y>
+     <x>299</x>
+     <y>214</y>
     </hint>
     <hint type="destinationlabel">
      <x>274</x>
      <y>234</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>workButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>go()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>132</x>
+     <y>410</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>breakButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>pause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>336</x>
+     <y>410</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionWork</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>go()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionBreak</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>pause()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>234</x>
+     <y>244</y>
     </hint>
    </hints>
   </connection>
