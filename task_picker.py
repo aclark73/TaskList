@@ -8,6 +8,11 @@ from models import Task, NO_TASK
 # from settings import AppSettings
 from socket import gethostname
 
+from task_source.local import LocalSource
+from task_source.redmine import RedmineSource
+
+SOURCES = [LocalSource(), RedmineSource()]
+
 class TaskPickerSettings(object):
     if 'honu' in gethostname().lower():
         BASE_URL = 'http://dmscode.iris.washington.edu/'
@@ -20,104 +25,19 @@ class TaskPickerSettings(object):
 
 SETTINGS = TaskPickerSettings()
 
-class BasePickerItem(QtGui.QTreeWidgetItem):
+class PickerItem(QtGui.QTreeWidgetItem):
     itemType = QtGui.QTreeWidgetItem.UserType
-    source = ''
     task = None
-    def __init__(self, *args, **kwargs):
-        for k in kwargs.keys():
-            if hasattr(self, k) and getattr(self, k) is None:
-                setattr(self, k, kwargs.pop(k))
-        # kwargs['type'] = self.itemType
-        super(BasePickerItem, self).__init__(*args, **kwargs)
-        self.init()
-    def init(self):
-        self.setText(0, self.get_label())
-    def get_task(self):
-        if not self.task:
-            kwargs = self.get_task_kwargs()
-            (self.task, _) = Task.get_or_create(**kwargs)
-        return self.task
-    def get_task_kwargs(self):
-        raise NotImplementedError
-    def get_label(self):
-        raise NotImplementedError
+    def __init__(self, task):
+        assert(task)
+        super(PickerItem, self).__init__()
+        self.task = task
+        self.setText(0, self.task.get_label())
     def get_uid(self):
-        return self.get_task().get_uid()
+        return self.task.get_uid()
     def __str__(self):
-        return str(self.get_task())
+        return str(self.task)
     
-
-class ProjectItem(BasePickerItem):
-    itemType = BasePickerItem.itemType + 1
-    name = None
-    def get_task_kwargs(self):
-        return dict(
-            project=self.name,
-            name='',
-            source=self.source
-        )
-    def get_label(self):
-        return self.name
-
-
-class IssueItem(BasePickerItem):
-    itemType = ProjectItem.itemType + 1
-    title = None
-    project = None
-    issue_id = None
-    link_url = None
-
-    def init(self):
-        assert(self.title)
-        assert(self.project)
-        super(IssueItem, self).init()
-
-    def get_label(self):
-        if self.issue_id:
-            return "#%s %s" % (self.issue_id, self.title)
-        else:
-            return self.title
-
-    def get_task_kwargs(self):
-        return dict(
-            project=self.project,
-            name=self.title,
-            source=self.source,
-            issue_id=self.issue_id
-        )
-
-
-class LocalProjectItem(ProjectItem):
-    def init(self):
-        assert(self.task)
-        self.name = self.task.project
-        super(LocalProjectItem, self).init()
-
-
-class RedmineProjectItem(ProjectItem):
-    pass
-
-
-class LocalIssueItem(IssueItem):
-    def init(self):
-        assert(self.task)
-        self.title = self.task.name
-        self.project = self.task.project
-        super(LocalIssueItem, self).init()
-
-
-class RedmineIssueItem(IssueItem):
-    source = 'redmine'
-    issue = None
-    def init(self):
-        assert(self.issue)
-        self.issue_id = self.issue.get('id')
-        # link = SETTINGS.ISSUE_URL % (SETTINGS.BASE_URL, self.issue_id)
-        self.title = self.issue.get('subject')
-        self.project = self.issue.get('project').get('name')
-        super(RedmineIssueItem, self).init()
-
 
 class TaskPicker(QtCore.QObject):
 
@@ -153,55 +73,41 @@ class TaskPicker(QtCore.QObject):
         self.treeWidget.clear()
         self.projects = {}
         self.uids = {}
-        self.fetchLocalTasks()
-        self.fetchRedmineTasks()
+        for source in SOURCES:
+            for task in source.fetch():
+                self.addTask(task)
 
-    def addProject(self, project):
-        self.projects[project.name] = project
-        self.uids[project.get_uid()] = project
-        self.treeWidget.addTopLevelItem(project)
-        # self.list.insert('', 'end', uid=project.get_uid(), text=project.get_label())
-        return project
-
-    def addItem(self, item):
-        project = self.projects.get(item.project)
-        if not project:
-            project = self.addProject(ProjectItem(name=item.project))
-        self.uids[item.get_uid()] = item
-        project.addChild(item)
-        # self.list.insert(project.get_uid(), 'end', uid=item.get_uid(), text=item.get_label())
-
-    def fetchLocalTasks(self):
-        tasks = Task.select().where(Task.source==LocalIssueItem.source)
-        for task in tasks:
-            if not task.name:
-                if task.project not in self.projects:
-                    self.addProject(LocalProjectItem(task=task))
-            else:
-                self.addItem(LocalIssueItem(task=task))
-
-    def fetchRedmineTasks(self):
-        if 'localhost' in SETTINGS.BASE_URL:
-            with open('issues.json') as f:
-                j = json.load(f)
+    def addTask(self, task):
+        print 'Adding task "%s"' % task.get_uid()
+        item = PickerItem(task)
+        self.uids[task.get_uid()] = item
+        if task.is_project():
+            self.projects[task.project] = item
+            self.treeWidget.addTopLevelItem(item)
         else:
-            r = requests.get(SETTINGS.ISSUES_URL % SETTINGS.BASE_URL)
-            if r.ok:
-                j = r.json()
-        for issue in j.get('issues'):
-            self.addItem(RedmineIssueItem(issue=issue))
+            project = self.getOrCreateProject(task.project, source=task.source)
+            project.addChild(item)
+        return item
+
+    def getOrCreateProject(self, project, **kwargs):
+        if project in self.projects:
+            return self.projects[project]
+        else:
+            (task, _) = Task.get_or_create(
+                project=project, title=None, defaults=kwargs)
+            return self.addTask(task)
 
     def selectTask(self, task_uid):
-        print "Looking for %s" % task_uid
-        item = self.uids.get(task_uid)
-        if item:
+        print "Looking for %s in [%s]" % (task_uid, ','.join(self.uids.keys()))
+        if task_uid in self.uids:
             print "Found item"
+            item = self.uids[task_uid]
             self.treeWidget.setCurrentItem(item)
-            self.picked.emit(item.get_task())
+            self.picked.emit(item.task)
 
     def onItemClick(self, item):
         # self.pickedTask = self.uids[self.list.focus()].task
-        self.picked.emit(item.get_task())
+        self.picked.emit(item.task)
 
 
 def run():

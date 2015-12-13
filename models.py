@@ -32,37 +32,50 @@ db = peewee.SqliteDatabase('%s/tasks.db' % FILE_ROOT)
 class Task(peewee.Model):
     id = peewee.PrimaryKeyField()
     project = peewee.CharField()
-    name = peewee.CharField()
+    title = peewee.CharField()
     source = peewee.CharField()
     issue_id = peewee.CharField()
 
     class Meta:
         database = db
 
+    def is_project(self):
+        return not self.title
+
     def get_uid(self):
-        if self.name:
-            return "I.%s.%s.%s.%s" % (self.source, self.project, self.issue_id, self.name)
+        if self.is_project():
+            return "P.%s" % self.project
+        elif self.issue_id:
+            return "T.%s.%s" % (self.source, self.issue_id)
         else:
-            return "P.%s.%s" % (self.source, self.project)
+            return "T.%s.%s.%s" % (self.source, self.project, self.title)
+
+    def get_label(self):
+        s = []
+        if self.issue_id:
+            s.append("#%s" % self.issue_id)
+        if self.title:
+            s.append(str(self.title))
+        elif self.project:
+            s.append(str(self.project))
+        return " ".join(s)
 
     def __repr__(self):
-        return "<Task(project='%s', name='%s')>" % (
-                            self.project, self.name)
+        return "<Task(project='%s', title='%s')>" % (
+                            self.project, self.title)
 
     def __str__(self):
         s = []
         if self.issue_id:
             s.append("#%s" % self.issue_id)
         s.append(str(self.project))
-        if self.name:
-            s.append(self.name)
+        if self.title:
+            s.append(self.title)
         return " | ".join(s)
 
 Task.create_table(True)
 
-NO_TASK = Task(name="None")
-
-REDMINE_TASK_URL = 'http://dmscode.iris.washington.edu/time_entries.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837'
+NO_TASK = Task(title="None")
 
 class TaskLog(peewee.Model):
     id = peewee.PrimaryKeyField()
@@ -90,6 +103,8 @@ class TaskLog(peewee.Model):
         return session.query(TaskLog)
 
 TaskLog.create_table(True)
+
+REDMINE_TASK_URL = 'http://dmscode.iris.washington.edu/time_entries.json?key=fb0ace80aa4ed5d8c113d5ecba70d6509b318837'
 
 class RedmineUploader():
 
