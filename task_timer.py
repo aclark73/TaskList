@@ -37,10 +37,10 @@ class TaskTimer(QtCore.QObject):
     needsBreak = False
     task = NO_TASK
     
-    def __init__(self, app, timeLabel, taskLabel, progressBar):
+    def __init__(self, app, timeLabel, progressBar):
         super(TaskTimer, self).__init__()
         self.app = app
-        self.initUI(timeLabel, taskLabel, progressBar)
+        self.initUI(timeLabel, progressBar)
         self.initTimers()
         self.updateUI()
     
@@ -82,9 +82,8 @@ class TaskTimer(QtCore.QObject):
         self.breakDoneWidget.show()
     
 
-    def initUI(self, timeLabel, taskLabel, progressBar):
+    def initUI(self, timeLabel, progressBar):
         self.timeLabel = timeLabel
-        self.taskLabel = taskLabel
         self.progressBar = progressBar
 
         #self.displayMessage = QtGui.QLabel("", self)
@@ -111,7 +110,6 @@ class TaskTimer(QtCore.QObject):
         self.stop()
         self.setState(TimerState.ON_BREAK)
         self.needsBreak = False
-        self.taskLabel.setText("On break")
         self.setTimeToGo(minutes)
         self.endTime = datetime.datetime.now() + self.timeToGo
         self.timer.start()
@@ -168,7 +166,6 @@ class TaskTimer(QtCore.QObject):
             if self.isRunning():
                 self.stop()
             self.task = task
-            self.taskLabel.setText(str(self.task))
             self.canContinue = False
             self.updateUI()
             self.start()
@@ -208,7 +205,6 @@ class TaskTimer(QtCore.QObject):
             self.setTimeToGo(SETTINGS.TASK_TIME)
         self.endTime = self.startTime + self.timeToGo
         self.setState(TimerState.RUNNING)
-        self.taskLabel.setText(str(self.task))
         self.started.emit(self.task)
         self.timer.start()
         self.updateUI()

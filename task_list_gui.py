@@ -19,7 +19,7 @@ class TaskListGui(QtGui.QMainWindow):
         self.taskPicker = TaskPicker(self, self.ui.treeWidget)
         self.taskPicker.picked.connect(self.onTaskPicked)
 
-        self.taskTimer = TaskTimer(self, self.ui.timeLabel, self.ui.taskLabel, self.ui.progressBar)
+        self.taskTimer = TaskTimer(self, self.ui.timeLabel, self.ui.progressBar)
         self.taskTimer.started.connect(self.onStarted)
         self.taskTimer.stopped.connect(self.onStopped)
         

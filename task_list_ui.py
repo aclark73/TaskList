@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'task_list.ui'
 #
-# Created: Wed Dec  9 16:42:38 2015
-#      by: PyQt4 UI code generator 4.10.3
+# Created: Wed Dec 16 22:48:07 2015
+#      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -90,15 +90,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setSpacing(4)
         self.verticalLayout_3.setMargin(0)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
-        self.taskLabel = QtGui.QLabel(self.taskTimerWidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.taskLabel.sizePolicy().hasHeightForWidth())
-        self.taskLabel.setSizePolicy(sizePolicy)
-        self.taskLabel.setObjectName(_fromUtf8("taskLabel"))
-        self.verticalLayout_3.addWidget(self.taskLabel)
         self.comboBox = QtGui.QComboBox(self.taskTimerWidget)
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Helvetica Neue"))
+        font.setPointSize(18)
+        self.comboBox.setFont(font)
+        self.comboBox.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         self.comboBox.setEditable(False)
         self.comboBox.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
         self.comboBox.setObjectName(_fromUtf8("comboBox"))
@@ -192,7 +189,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Task List", None))
         self.treeWidget.headerItem().setText(0, _translate("MainWindow", "Task", None))
         self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
-        self.taskLabel.setText(_translate("MainWindow", "Task", None))
         self.timeLabel.setText(_translate("MainWindow", "Time", None))
         self.workButton.setText(_translate("MainWindow", "Work", None))
         self.breakButton.setText(_translate("MainWindow", "Break", None))
