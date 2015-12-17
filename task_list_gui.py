@@ -24,7 +24,7 @@ class TaskListGui(QtGui.QMainWindow):
         self.taskTimer.stopped.connect(self.onStopped)
         
         self.taskHistory = TaskHistory(self, self.ui.comboBox)
-        self.taskHistory.picked.connect(self.taskPicker.selectTask)
+        self.taskHistory.picked.connect(self.onHistoryPicked)
     
     def onStarted(self, task):
         self.ui.workButton.setChecked(True)
@@ -35,6 +35,10 @@ class TaskListGui(QtGui.QMainWindow):
         print(log)
         self.ui.breakButton.setChecked(True)
         self.ui.statusBar.showMessage("Paused")
+    
+    def onHistoryPicked(self, task_uid):
+        self.taskPicker.selectTask(task_uid)
+        self.go()
     
     def onTaskPicked(self, task):
         self.pickedTask = task

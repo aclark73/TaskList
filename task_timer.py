@@ -160,7 +160,7 @@ class TaskTimer(QtCore.QObject):
             self.timeUp()
     
     def setTask(self, task):
-        if task == self.task:
+        if task.get_uid() == self.task.get_uid():
             if not self.isRunning():
                 self.start()
             return

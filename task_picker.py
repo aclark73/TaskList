@@ -98,16 +98,25 @@ class TaskPicker(QtCore.QObject):
             return self.addTask(task)
 
     def selectTask(self, task_uid):
-        print "Looking for %s in [%s]" % (task_uid, ','.join(self.uids.keys()))
-        if task_uid in self.uids:
-            print "Found item"
-            item = self.uids[task_uid]
-            self.treeWidget.setCurrentItem(item)
-            self.picked.emit(item.task)
+        # print "Looking for %s in [%s]" % (task_uid, ','.join(self.uids.keys()))
+        task_uid = str(task_uid)
+        current_item = self.treeWidget.currentItem()
+        if current_item:
+            current_uid = str(current_item.task.get_uid())
+        else:
+            current_uid = ''
+        # print "Looking for %s, current task is %s" % (task_uid, current_uid)
+        if task_uid != current_uid:
+            item = self.uids.get(task_uid)
+            if item:
+                # print "Found item"
+                self.treeWidget.setCurrentItem(item)
+                self.picked.emit(item.task)
 
     def onItemClick(self, item):
         # self.pickedTask = self.uids[self.list.focus()].task
-        self.picked.emit(item.task)
+        self.pickedTask = item.task
+        self.picked.emit(self.pickedTask)
 
 
 def run():
