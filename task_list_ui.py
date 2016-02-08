@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'task_list.ui'
 #
-# Created: Wed Dec 16 22:48:07 2015
-#      by: PyQt4 UI code generator 4.10.4
+# Created: Fri Jan  8 11:15:56 2016
+#      by: PyQt4 UI code generator 4.10.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(485, 500)
+        MainWindow.resize(239, 644)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -56,7 +56,11 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.treeWidget.sizePolicy().hasHeightForWidth())
         self.treeWidget.setSizePolicy(sizePolicy)
         self.treeWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.treeWidget.setAlternatingRowColors(True)
+        self.treeWidget.setIndentation(10)
+        self.treeWidget.setRootIsDecorated(True)
         self.treeWidget.setAllColumnsShowFocus(True)
+        self.treeWidget.setWordWrap(True)
         self.treeWidget.setExpandsOnDoubleClick(False)
         self.treeWidget.setObjectName(_fromUtf8("treeWidget"))
         self.verticalLayout.addWidget(self.treeWidget)
@@ -91,14 +95,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.setMargin(0)
         self.verticalLayout_3.setObjectName(_fromUtf8("verticalLayout_3"))
         self.comboBox = QtGui.QComboBox(self.taskTimerWidget)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Helvetica Neue"))
-        font.setPointSize(18)
-        self.comboBox.setFont(font)
         self.comboBox.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         self.comboBox.setEditable(False)
         self.comboBox.setInsertPolicy(QtGui.QComboBox.InsertAtTop)
         self.comboBox.setObjectName(_fromUtf8("comboBox"))
+        self.comboBox.addItem(_fromUtf8(""))
         self.verticalLayout_3.addWidget(self.comboBox)
         self.timeLabel = QtGui.QLabel(self.taskTimerWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -106,9 +107,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.timeLabel.sizePolicy().hasHeightForWidth())
         self.timeLabel.setSizePolicy(sizePolicy)
-        font = QtGui.QFont()
-        font.setPointSize(24)
-        self.timeLabel.setFont(font)
+        self.timeLabel.setStyleSheet(_fromUtf8("font-size: 32pt;"))
         self.timeLabel.setObjectName(_fromUtf8("timeLabel"))
         self.verticalLayout_3.addWidget(self.timeLabel)
         self.progressBar = QtGui.QProgressBar(self.taskTimerWidget)
@@ -124,14 +123,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setMargin(0)
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
         self.workButton = QtGui.QPushButton(self.frame_3)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8(".Helvetica Neue DeskInterface"))
-        font.setPointSize(24)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(50)
-        self.workButton.setFont(font)
-        self.workButton.setStyleSheet(_fromUtf8("font: 24pt;\n"
+        self.workButton.setStyleSheet(_fromUtf8("font-size: 24pt;\n"
 "color: rgb(0, 128, 64);padding: 18px;"))
         self.workButton.setCheckable(True)
         self.workButton.setChecked(False)
@@ -139,14 +131,9 @@ class Ui_MainWindow(object):
         self.workButton.setObjectName(_fromUtf8("workButton"))
         self.horizontalLayout.addWidget(self.workButton)
         self.breakButton = QtGui.QPushButton(self.frame_3)
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8(".Helvetica Neue DeskInterface"))
-        font.setPointSize(24)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(50)
-        self.breakButton.setFont(font)
-        self.breakButton.setStyleSheet(_fromUtf8("color: rgb(128, 0, 0); padding: 18px;\n"
+        self.breakButton.setStyleSheet(_fromUtf8("font-size: 24pt;\n"
+"color: rgb(128, 0, 0); \n"
+"padding: 18px;\n"
 ""))
         self.breakButton.setCheckable(True)
         self.breakButton.setAutoExclusive(True)
@@ -163,7 +150,7 @@ class Ui_MainWindow(object):
         self.statusBar.setObjectName(_fromUtf8("statusBar"))
         MainWindow.setStatusBar(self.statusBar)
         self.menuBar = QtGui.QMenuBar(MainWindow)
-        self.menuBar.setGeometry(QtCore.QRect(0, 0, 485, 22))
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 239, 22))
         self.menuBar.setObjectName(_fromUtf8("menuBar"))
         self.menuAction = QtGui.QMenu(self.menuBar)
         self.menuAction.setObjectName(_fromUtf8("menuAction"))
@@ -189,6 +176,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "Task List", None))
         self.treeWidget.headerItem().setText(0, _translate("MainWindow", "Task", None))
         self.refreshButton.setText(_translate("MainWindow", "Refresh", None))
+        self.comboBox.setItemText(0, _translate("MainWindow", "Current Task", None))
         self.timeLabel.setText(_translate("MainWindow", "Time", None))
         self.workButton.setText(_translate("MainWindow", "Work", None))
         self.breakButton.setText(_translate("MainWindow", "Break", None))

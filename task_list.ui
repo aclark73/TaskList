@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>485</width>
-    <height>500</height>
+    <width>459</width>
+    <height>684</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -53,7 +53,19 @@
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
+         <property name="alternatingRowColors">
+          <bool>true</bool>
+         </property>
+         <property name="indentation">
+          <number>10</number>
+         </property>
+         <property name="rootIsDecorated">
+          <bool>true</bool>
+         </property>
          <property name="allColumnsShowFocus">
+          <bool>true</bool>
+         </property>
+         <property name="wordWrap">
           <bool>true</bool>
          </property>
          <property name="expandsOnDoubleClick">
@@ -64,6 +76,21 @@
            <string>Task</string>
           </property>
          </column>
+         <item>
+          <property name="text">
+           <string>Wilber</string>
+          </property>
+          <item>
+           <property name="text">
+            <string>#513 Something</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>#510 Other</string>
+           </property>
+          </item>
+         </item>
         </widget>
        </item>
        <item>
@@ -138,12 +165,6 @@
           </property>
           <item>
            <widget class="QComboBox" name="comboBox">
-            <property name="font">
-             <font>
-              <family>Helvetica Neue</family>
-              <pointsize>18</pointsize>
-             </font>
-            </property>
             <property name="cursor">
              <cursorShape>ArrowCursor</cursorShape>
             </property>
@@ -153,6 +174,11 @@
             <property name="insertPolicy">
              <enum>QComboBox::InsertAtTop</enum>
             </property>
+            <item>
+             <property name="text">
+              <string>Current Task</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item>
@@ -163,10 +189,8 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="font">
-             <font>
-              <pointsize>24</pointsize>
-             </font>
+            <property name="styleSheet">
+             <string notr="true">font-size: 32pt;</string>
             </property>
             <property name="text">
              <string>Time</string>
@@ -206,17 +230,8 @@
           </property>
           <item>
            <widget class="QPushButton" name="workButton">
-            <property name="font">
-             <font>
-              <family>.Helvetica Neue DeskInterface</family>
-              <pointsize>24</pointsize>
-              <weight>50</weight>
-              <italic>false</italic>
-              <bold>false</bold>
-             </font>
-            </property>
             <property name="styleSheet">
-             <string notr="true">font: 24pt;
+             <string notr="true">font-size: 24pt;
 color: rgb(0, 128, 64);padding: 18px;</string>
             </property>
             <property name="text">
@@ -235,17 +250,10 @@ color: rgb(0, 128, 64);padding: 18px;</string>
           </item>
           <item>
            <widget class="QPushButton" name="breakButton">
-            <property name="font">
-             <font>
-              <family>.Helvetica Neue DeskInterface</family>
-              <pointsize>24</pointsize>
-              <weight>50</weight>
-              <italic>false</italic>
-              <bold>false</bold>
-             </font>
-            </property>
             <property name="styleSheet">
-             <string notr="true">color: rgb(128, 0, 0); padding: 18px;
+             <string notr="true">font-size: 24pt;
+color: rgb(128, 0, 0); 
+padding: 18px;
 </string>
             </property>
             <property name="text">
@@ -286,7 +294,7 @@ color: rgb(0, 128, 64);padding: 18px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>485</width>
+     <width>459</width>
      <height>22</height>
     </rect>
    </property>

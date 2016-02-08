@@ -78,7 +78,7 @@ class TaskPicker(QtCore.QObject):
                 self.addTask(task)
 
     def addTask(self, task):
-        print 'Adding task "%s"' % task.get_uid()
+        # print 'Adding task "%s"' % task.get_uid()
         item = PickerItem(task)
         self.uids[task.get_uid()] = item
         if task.is_project():
