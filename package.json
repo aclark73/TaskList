@@ -1,5 +1,10 @@
 {
-  "name"    : "task-list",
-  "version" : "0.1.0",
-  "main"    : "main.js"
+  "name": "proton-template-app",
+  "version": "1.0.0",
+  "description": "A simple template app for Proton",
+  "main": "app.js",
+  "author": "Connor Sears",
+  "scripts": {
+    "start": "electron ."
+  }
 }
