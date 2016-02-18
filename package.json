@@ -1,10 +1,14 @@
 {
-  "name": "proton-template-app",
+  "name": "task-list",
   "version": "1.0.0",
-  "description": "A simple template app for Proton",
+  "description": "My Task List",
   "main": "app.js",
-  "author": "Connor Sears",
+  "author": "Adam Clark",
   "scripts": {
     "start": "electron ."
+  },
+  "dependencies": {
+    "orm": "2.x",
+    "sqlite3": "3.x"
   }
 }
